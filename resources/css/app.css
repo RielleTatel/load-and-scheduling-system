@@ -1,9 +1,81 @@
-@import 'tailwindcss';
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Great+Vibes&display=swap');
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+/* Institutional Atenista — signature devices as reusable classes.
+   See docs/design/JHS-design-system.md and docs/design/style-guide.html. */
+@layer components {
+    /* Page-title rule: uppercase display over a canary tick — worn by every page. */
+    .title-rule h1,
+    .title-rule h2 {
+        @apply font-display uppercase tracking-tight text-ink leading-none;
+    }
+    .title-rule .tick {
+        @apply block w-12 h-1 bg-canary rounded-full mt-3;
+    }
+
+    .eyebrow {
+        @apply font-bold text-xs uppercase tracking-[0.14em] text-electric;
+    }
+
+    /* The Anuncio frame — thin rounded rectangle with an inset second stroke.
+       Login card + identity panels only. */
+    .anuncio-frame {
+        @apply relative rounded-frame border border-line;
+    }
+    .anuncio-frame::before {
+        content: '';
+        @apply absolute rounded-[13px] border border-line pointer-events-none;
+        inset: 7px;
+    }
+
+    /* Buttons */
+    .btn {
+        @apply inline-flex items-center justify-center gap-2 font-semibold text-sm rounded-[10px] px-[18px] py-[10px] leading-tight transition;
+    }
+    .btn:focus-visible {
+        @apply outline-none ring-2 ring-electric ring-offset-2;
+    }
+    .btn-primary  { @apply btn bg-cobalt text-white hover:brightness-110; }
+    .btn-hero     { @apply btn bg-canary text-canary-ink hover:brightness-105; }
+    .btn-secondary{ @apply btn bg-white text-ink border border-line hover:bg-mist; }
+    .btn-ghost    { @apply btn bg-transparent text-slate-brand hover:bg-mist hover:text-ink; }
+    .btn-danger   { @apply btn bg-rose-brand text-white hover:brightness-105; }
+
+    /* Card */
+    .card {
+        @apply bg-white border border-line rounded-card shadow-card;
+    }
+
+    /* Status pills */
+    .pill {
+        @apply inline-block font-bold text-[11.5px] uppercase tracking-[0.06em] px-3 py-[5px] rounded-full leading-tight whitespace-nowrap;
+    }
+    .pill-draft     { @apply pill bg-mist text-slate-brand border border-line; }
+    .pill-submitted { @apply pill bg-jade text-white; }
+    .pill-returned  { @apply pill bg-canary text-canary-ink; }
+    .pill-locked    { @apply pill bg-navy text-white; }
+
+    /* Data-quality flags */
+    .flag {
+        @apply inline-flex items-center gap-1.5 font-semibold text-xs px-2.5 py-[5px] rounded-lg leading-tight;
+    }
+    .flag::before { content: ''; @apply w-[7px] h-[7px] rounded-full; }
+    .flag-warn { @apply bg-amber-brand/[.14] text-[#8a6200]; }
+    .flag-warn::before { @apply bg-amber-brand; }
+    .flag-crit { @apply bg-rose-brand/[.12] text-[#a2313a]; }
+    .flag-crit::before { @apply bg-rose-brand; }
+
+    /* Form field */
+    .field-label { @apply block font-semibold text-[13px] text-ink mb-1.5; }
+    .field-input {
+        @apply w-full font-sans text-sm text-ink bg-white border border-line rounded-[10px] px-3 py-[11px];
+    }
+    .field-input:focus {
+        @apply outline-none border-electric ring-2 ring-electric/25;
+    }
+    .field-help { @apply text-[12.5px] text-slate-brand mt-1.5; }
+    .field-error { @apply text-[12.5px] text-rose-brand mt-1.5; }
 }
