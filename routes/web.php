@@ -65,6 +65,9 @@ Route::middleware(['auth', 'role:department_chair'])->prefix('chair')->name('cha
     Route::delete('moderators', [DepartmentChair\SectionAssignmentController::class, 'destroyModerator'])->name('moderators.destroy');
     Route::post('honors', [DepartmentChair\SectionAssignmentController::class, 'storeHonors'])->name('honors.store');
     Route::delete('honors', [DepartmentChair\SectionAssignmentController::class, 'destroyHonors'])->name('honors.destroy');
+
+    Route::get('submission', [DepartmentChair\SubmissionController::class, 'show'])->name('submission.show');
+    Route::post('submission', [DepartmentChair\SubmissionController::class, 'store'])->name('submission.store');
 });
 
 require __DIR__.'/auth.php';
