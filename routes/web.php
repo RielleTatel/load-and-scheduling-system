@@ -42,6 +42,15 @@ Route::middleware(['auth', 'role:system_admin'])->prefix('admin')->name('admin.'
 
 Route::middleware(['auth', 'role:department_chair'])->prefix('chair')->name('chair.')->group(function () {
     Route::get('/', [DepartmentChair\DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('plantilla/upload', [DepartmentChair\PlantillaUploadController::class, 'create'])->name('plantilla.create');
+    Route::post('plantilla', [DepartmentChair\PlantillaUploadController::class, 'store'])->name('plantilla.store');
+
+    Route::get('plantilla/review', [DepartmentChair\PlantillaReviewController::class, 'show'])->name('plantilla.review');
+    Route::post('plantilla/rows', [DepartmentChair\PlantillaReviewController::class, 'storeRow'])->name('plantilla.rows.store');
+    Route::patch('plantilla/rows/{row}', [DepartmentChair\PlantillaReviewController::class, 'updateRow'])->name('plantilla.rows.update');
+    Route::delete('plantilla/rows/{row}', [DepartmentChair\PlantillaReviewController::class, 'destroyRow'])->name('plantilla.rows.destroy');
+    Route::post('plantilla/confirm', [DepartmentChair\PlantillaReviewController::class, 'confirm'])->name('plantilla.confirm');
 });
 
 require __DIR__.'/auth.php';
