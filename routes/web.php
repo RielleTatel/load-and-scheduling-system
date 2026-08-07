@@ -51,6 +51,12 @@ Route::middleware(['auth', 'role:department_chair'])->prefix('chair')->name('cha
     Route::patch('plantilla/rows/{row}', [DepartmentChair\PlantillaReviewController::class, 'updateRow'])->name('plantilla.rows.update');
     Route::delete('plantilla/rows/{row}', [DepartmentChair\PlantillaReviewController::class, 'destroyRow'])->name('plantilla.rows.destroy');
     Route::post('plantilla/confirm', [DepartmentChair\PlantillaReviewController::class, 'confirm'])->name('plantilla.confirm');
+
+    Route::get('teachers', [DepartmentChair\TeacherController::class, 'index'])->name('teachers.index');
+    Route::get('teachers/create', [DepartmentChair\TeacherController::class, 'create'])->name('teachers.create');
+    Route::post('teachers', [DepartmentChair\TeacherController::class, 'store'])->name('teachers.store');
+    Route::get('teachers/{teacher}/edit', [DepartmentChair\TeacherController::class, 'edit'])->name('teachers.edit');
+    Route::put('teachers/{teacher}', [DepartmentChair\TeacherController::class, 'update'])->name('teachers.update');
 });
 
 require __DIR__.'/auth.php';
