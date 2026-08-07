@@ -1,0 +1,469 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Great+Vibes&display=swap" rel="stylesheet">
+<title>JHS Load & Scheduling — Design System</title>
+<style>
+  :root {
+    --cobalt:#1E22C4; --electric:#3B5BFF; --navy:#0B0B45; --navy-800:#12124F;
+    --canary:#FFD60A; --canary-ink:#5A4B00; --parchment:#F6EFD8;
+    --ink:#14152E; --slate:#565A78; --mist:#EEF1F8; --line:#DCE0EC; --white:#FFFFFF;
+    --jade:#1E9E6A; --amber:#E8A400; --rose:#D64550;
+    --shadow:0 1px 2px rgba(11,11,69,.06), 0 10px 30px rgba(11,11,69,.05);
+    --r-card:16px; --r-btn:10px; --r-frame:20px;
+    --display:"Archivo Black","Arial Black","Helvetica Neue",sans-serif;
+    --ui:"Montserrat",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --data:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --script:"Great Vibes","Snell Roundhand","Apple Chancery",cursive;
+  }
+  * { box-sizing:border-box; }
+  html { -webkit-text-size-adjust:100%; }
+  body {
+    margin:0; background:var(--mist); color:var(--ink);
+    font-family:var(--ui); font-size:15px; line-height:1.55;
+  }
+  .wrap { max-width:1120px; margin:0 auto; padding:0 24px; }
+  section { padding:56px 0; border-top:1px solid var(--line); }
+  section:first-of-type { border-top:none; }
+
+  /* ---- shared type devices ---- */
+  .eyebrow {
+    font-family:var(--ui); font-weight:700; font-size:12px; text-transform:uppercase;
+    letter-spacing:.14em; color:var(--electric); margin:0 0 14px;
+  }
+  .title-rule { margin:0 0 6px; }
+  .title-rule h2 {
+    font-family:var(--display); font-weight:400; text-transform:uppercase;
+    font-size:clamp(22px,3.4vw,30px); letter-spacing:-.01em; line-height:1.02;
+    margin:0; color:var(--ink); text-wrap:balance;
+  }
+  .tick { width:48px; height:4px; background:var(--canary); border-radius:2px; margin-top:14px; }
+  .lead { color:var(--slate); max-width:64ch; margin:16px 0 0; }
+
+  /* ---- masthead ---- */
+  .masthead {
+    position:relative; overflow:hidden; color:var(--white);
+    background:
+      radial-gradient(120% 130% at 50% 8%, #2A2FE0 0%, var(--cobalt) 34%, var(--navy) 78%, #05052A 100%);
+    border-top:none;
+  }
+  .masthead .wrap { padding-top:64px; padding-bottom:64px; position:relative; z-index:1; }
+  .anuncio {
+    display:flex; align-items:center; gap:16px; justify-content:center;
+    font-family:var(--display); text-transform:uppercase; color:var(--canary);
+    font-size:clamp(20px,3vw,30px); letter-spacing:.02em; margin-bottom:36px;
+  }
+  .anuncio span:nth-child(2){
+    width:44px; height:44px; border-radius:50%; border:2px solid rgba(255,255,255,.5);
+    display:grid; place-items:center; font-family:var(--display); font-size:13px; color:#fff;
+    letter-spacing:0; flex:0 0 auto;
+  }
+  .mast-frame {
+    position:relative; border:1.5px solid rgba(255,255,255,.85); border-radius:var(--r-frame);
+    padding:44px 40px; text-align:center;
+  }
+  .mast-frame::before {
+    content:""; position:absolute; inset:6px; border:1px solid rgba(255,255,255,.35);
+    border-radius:calc(var(--r-frame) - 6px); pointer-events:none;
+  }
+  .mast-script {
+    font-family:var(--script); font-weight:400; font-size:clamp(30px,5vw,46px);
+    line-height:1; color:#fff; margin:0 0 8px;
+  }
+  .mast-title {
+    font-family:var(--display); text-transform:uppercase; color:#fff;
+    font-size:clamp(30px,6.5vw,60px); line-height:.94; letter-spacing:-.01em;
+    margin:6px 0 18px; text-wrap:balance;
+  }
+  .mast-sub { color:rgba(255,255,255,.82); max-width:60ch; margin:0 auto; font-size:15px; }
+  .mast-meta {
+    display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:26px;
+  }
+  .mast-meta span {
+    font-size:12px; font-weight:600; letter-spacing:.04em; color:#fff;
+    background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.22);
+    padding:6px 12px; border-radius:999px;
+  }
+
+  /* ---- palette ---- */
+  .swatch-grid { display:grid; gap:14px; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); margin-top:28px; }
+  .swatch { background:var(--white); border:1px solid var(--line); border-radius:var(--r-card); overflow:hidden; box-shadow:var(--shadow); }
+  .swatch .chip { height:78px; display:flex; align-items:flex-end; padding:10px; }
+  .swatch .chip .hex { font-family:var(--data); font-size:12px; font-weight:600; padding:3px 7px; border-radius:6px; background:rgba(255,255,255,.85); color:var(--ink); }
+  .swatch .chip.dark .hex { background:rgba(255,255,255,.9); }
+  .swatch .body { padding:12px 14px; }
+  .swatch .name { font-weight:700; font-size:14px; }
+  .swatch .role { color:var(--slate); font-size:12.5px; margin-top:3px; line-height:1.45; }
+
+  /* ---- type specimens ---- */
+  .type-list { display:flex; flex-direction:column; gap:4px; margin-top:24px; }
+  .type-row {
+    background:var(--white); border:1px solid var(--line); border-radius:var(--r-card);
+    padding:22px 24px; display:grid; grid-template-columns:130px 1fr; gap:24px; align-items:center; box-shadow:var(--shadow);
+  }
+  .type-row .meta { font-size:12px; color:var(--slate); line-height:1.5; }
+  .type-row .meta b { display:block; color:var(--ink); font-size:13px; font-weight:700; }
+  .sp-display { font-family:var(--display); text-transform:uppercase; font-size:34px; letter-spacing:-.01em; line-height:1; color:var(--ink); }
+  .sp-stat { font-family:var(--display); font-size:44px; line-height:1; color:var(--cobalt); }
+  .sp-head { font-family:var(--ui); font-weight:700; font-size:20px; color:var(--ink); }
+  .sp-body { font-family:var(--ui); font-weight:400; font-size:15px; color:var(--ink); max-width:62ch; }
+  .sp-data { font-family:var(--data); font-size:15px; font-variant-numeric:tabular-nums; letter-spacing:.01em; color:var(--ink); }
+  .sp-script { font-family:var(--script); font-size:40px; color:var(--cobalt); line-height:1; }
+  .sp-eyebrow { font-family:var(--ui); font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.14em; color:var(--electric); }
+
+  /* ---- generic grid + cards ---- */
+  .cards { display:grid; gap:20px; margin-top:28px; }
+  .cols-2 { grid-template-columns:repeat(2,1fr); }
+  .cols-3 { grid-template-columns:repeat(3,1fr); }
+  .card {
+    background:var(--white); border:1px solid var(--line); border-radius:var(--r-card);
+    padding:22px; box-shadow:var(--shadow);
+  }
+  .card > h3 { font-family:var(--ui); font-weight:700; font-size:16px; margin:0 0 4px; }
+  .card > .hint { color:var(--slate); font-size:13px; margin:0 0 18px; }
+
+  /* ---- stat tiles ---- */
+  .stat { display:flex; flex-direction:column; gap:2px; }
+  .stat .k { font-family:var(--ui); font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--slate); }
+  .stat .v { font-family:var(--display); font-size:44px; line-height:1.02; color:var(--cobalt); }
+  .stat .n { font-size:13px; color:var(--slate); }
+  .stat.accent .v { color:var(--navy); }
+
+  /* ---- buttons ---- */
+  .btn-row { display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+  .btn {
+    font-family:var(--ui); font-weight:600; font-size:14px; border-radius:var(--r-btn);
+    padding:10px 18px; border:1px solid transparent; cursor:pointer; line-height:1.2;
+    transition:filter .12s ease, background .12s ease, box-shadow .12s ease;
+  }
+  .btn:focus-visible { outline:2px solid var(--electric); outline-offset:2px; }
+  .btn-primary { background:var(--cobalt); color:#fff; }
+  .btn-primary:hover { filter:brightness(1.08); }
+  .btn-hero { background:var(--canary); color:var(--canary-ink); }
+  .btn-hero:hover { filter:brightness(1.05); }
+  .btn-secondary { background:var(--white); color:var(--ink); border-color:var(--line); }
+  .btn-secondary:hover { background:var(--mist); }
+  .btn-ghost { background:transparent; color:var(--slate); }
+  .btn-ghost:hover { color:var(--ink); background:var(--mist); }
+  .btn-danger { background:var(--rose); color:#fff; }
+  .btn-danger:hover { filter:brightness(1.06); }
+  .btn[disabled] { opacity:.5; cursor:not-allowed; }
+
+  /* ---- form ---- */
+  .field { display:flex; flex-direction:column; gap:7px; margin-bottom:18px; }
+  .field:last-child { margin-bottom:0; }
+  .field label { font-weight:600; font-size:13px; color:var(--ink); }
+  .field input, .field select {
+    font-family:var(--ui); font-size:14px; color:var(--ink);
+    padding:11px 13px; border:1px solid var(--line); border-radius:var(--r-btn); background:var(--white);
+    width:100%;
+  }
+  .field input:focus, .field select:focus { outline:none; border-color:var(--electric); box-shadow:0 0 0 3px rgba(59,91,255,.18); }
+  .field.err input { border-color:var(--rose); box-shadow:0 0 0 3px rgba(214,69,80,.14); }
+  .field .help { font-size:12.5px; color:var(--slate); }
+  .field.err .help { color:var(--rose); }
+
+  /* ---- pills + flags ---- */
+  .pill-row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .pill {
+    font-family:var(--ui); font-weight:700; font-size:11.5px; text-transform:uppercase; letter-spacing:.06em;
+    padding:5px 12px; border-radius:999px; line-height:1.3; white-space:nowrap;
+  }
+  .pill.draft { background:var(--mist); color:var(--slate); border:1px solid var(--line); }
+  .pill.submitted { background:var(--jade); color:#fff; }
+  .pill.returned { background:var(--canary); color:var(--canary-ink); }
+  .pill.locked { background:var(--navy); color:#fff; }
+  .flag {
+    display:inline-flex; align-items:center; gap:6px; font-family:var(--ui); font-weight:600; font-size:12px;
+    padding:5px 10px; border-radius:8px; line-height:1.2;
+  }
+  .flag::before { content:""; width:7px; height:7px; border-radius:50%; }
+  .flag.warn { background:rgba(232,164,0,.14); color:#8a6200; }
+  .flag.warn::before { background:var(--amber); }
+  .flag.crit { background:rgba(214,69,80,.12); color:#a2313a; }
+  .flag.crit::before { background:var(--rose); }
+
+  /* ---- data table ---- */
+  .table-wrap { overflow-x:auto; border:1px solid var(--line); border-radius:var(--r-card); background:var(--white); box-shadow:var(--shadow); }
+  table { width:100%; border-collapse:collapse; min-width:640px; }
+  thead th {
+    text-align:left; font-family:var(--ui); font-weight:700; font-size:11.5px; text-transform:uppercase;
+    letter-spacing:.06em; color:var(--slate); background:var(--mist); padding:13px 16px; border-bottom:1px solid var(--line);
+  }
+  tbody td { padding:14px 16px; border-bottom:1px solid var(--line); font-size:14px; }
+  tbody tr:last-child td { border-bottom:none; }
+  tbody tr:hover td { background:var(--mist); }
+  td.name { font-weight:600; }
+  td.num { font-family:var(--data); font-variant-numeric:tabular-nums; text-align:right; color:var(--ink); }
+  th.num { text-align:right; }
+  .over { color:var(--rose); font-weight:700; }
+
+  /* ---- app shell mock ---- */
+  .shell {
+    display:grid; grid-template-columns:236px 1fr; border:1px solid var(--line);
+    border-radius:var(--r-card); overflow:hidden; box-shadow:var(--shadow); background:var(--white); margin-top:28px;
+  }
+  .side { background:var(--navy); color:#fff; padding:20px 16px; display:flex; flex-direction:column; gap:6px; min-height:420px; }
+  .side .wordmark { display:flex; align-items:center; gap:10px; margin-bottom:22px; padding:0 6px; }
+  .side .mark { width:34px; height:34px; border-radius:9px; background:var(--canary); color:var(--navy); display:grid; place-items:center; font-family:var(--display); font-size:15px; }
+  .side .wm-txt b { font-family:var(--display); text-transform:uppercase; font-size:13px; letter-spacing:.02em; display:block; line-height:1.1; }
+  .side .wm-txt small { font-size:10.5px; color:rgba(255,255,255,.6); letter-spacing:.08em; text-transform:uppercase; }
+  .nav-group { font-size:10.5px; text-transform:uppercase; letter-spacing:.12em; color:rgba(255,255,255,.45); padding:12px 10px 6px; font-weight:700; }
+  .nav-item {
+    display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:9px; position:relative;
+    color:rgba(255,255,255,.82); font-size:13.5px; font-weight:500; cursor:default;
+  }
+  .nav-item:hover { background:var(--navy-800); color:#fff; }
+  .nav-item.active { background:rgba(255,255,255,.08); color:#fff; font-weight:600; }
+  .nav-item.active::before { content:""; position:absolute; left:-16px; top:7px; bottom:7px; width:4px; background:var(--canary); border-radius:0 3px 3px 0; }
+  .nav-item .dot { width:16px; height:16px; border-radius:5px; background:rgba(255,255,255,.28); flex:0 0 auto; }
+  .nav-item.active .dot { background:var(--canary); }
+  .side .spacer { flex:1; }
+  .user-chip { display:flex; align-items:center; gap:10px; padding:10px; border-radius:11px; background:var(--navy-800); }
+  .user-chip .av { width:32px; height:32px; border-radius:50%; background:var(--electric); color:#fff; display:grid; place-items:center; font-weight:700; font-size:13px; }
+  .user-chip b { font-size:13px; display:block; line-height:1.2; }
+  .user-chip small { font-size:11px; color:rgba(255,255,255,.6); }
+
+  .panel { background:var(--mist); padding:24px; }
+  .panel-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:20px; flex-wrap:wrap; }
+  .panel-head .eyebrow { margin-bottom:8px; }
+  .panel-head h2 { font-family:var(--display); text-transform:uppercase; font-size:24px; letter-spacing:-.01em; margin:0; line-height:1; }
+  .panel-head .tick { margin-top:12px; }
+  .mini-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:18px; }
+  .mini {
+    background:var(--white); border:1px solid var(--line); border-radius:12px; padding:16px;
+  }
+  .mini .k { font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--slate); font-weight:700; }
+  .mini .v { font-family:var(--display); font-size:32px; color:var(--cobalt); line-height:1.1; margin-top:4px; }
+  .mini.warn .v { color:var(--amber); }
+
+  /* ---- login mock ---- */
+  .login-stage {
+    border-radius:var(--r-card); overflow:hidden; margin-top:28px; padding:44px 24px;
+    background:radial-gradient(120% 130% at 50% 0%, #2A2FE0 0%, var(--cobalt) 38%, var(--navy) 82%, #05052A 100%);
+    display:grid; place-items:center;
+  }
+  .login-card {
+    position:relative; background:var(--white); border-radius:var(--r-frame); padding:38px 34px; width:min(380px,100%);
+    box-shadow:0 30px 60px rgba(5,5,42,.4);
+  }
+  .login-card::before { content:""; position:absolute; inset:7px; border:1px solid var(--line); border-radius:calc(var(--r-frame) - 7px); pointer-events:none; }
+  .login-card .greet { font-family:var(--script); font-size:40px; color:var(--cobalt); line-height:1; text-align:center; margin:0; }
+  .login-card .wm { font-family:var(--display); text-transform:uppercase; text-align:center; font-size:14px; letter-spacing:.04em; color:var(--navy); margin:6px 0 26px; }
+
+  .note { font-size:12.5px; color:var(--slate); margin-top:18px; }
+  .note code { font-family:var(--data); background:var(--white); border:1px solid var(--line); padding:1px 6px; border-radius:5px; font-size:12px; }
+  footer { padding:40px 0 64px; color:var(--slate); font-size:13px; text-align:center; }
+
+  @media (max-width:720px){
+    .cols-2,.cols-3,.mini-stats{ grid-template-columns:1fr; }
+    .shell{ grid-template-columns:1fr; }
+    .side{ min-height:auto; }
+    .type-row{ grid-template-columns:1fr; gap:12px; }
+  }
+  @media (prefers-reduced-motion:reduce){ *{ transition:none !important; } }
+</style>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="anuncio"><span>Sistema</span><span>JHS</span><span>Atenista</span></div>
+    <div class="mast-frame">
+      <p class="mast-script">Ateneo de Zamboanga University</p>
+      <h1 class="mast-title">JHS Load &amp; Scheduling<br>Design System</h1>
+      <p class="mast-sub">The visual identity for the teaching-load platform — cobalt chrome, canary signal, and the Anuncio frame, tuned from loud announcement posters into a calm workspace for administrators and department chairs.</p>
+      <div class="mast-meta">
+        <span>Institutional Atenista</span><span>Light-first</span><span>Blade · Tailwind</span><span>v1 — 2026-08-07</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">Direction</p>
+    <div class="title-rule"><h2>Loud where it announces, quiet where you work</h2><div class="tick"></div></div>
+    <p class="lead">The source materials are maximalist marketing posters. This is a data-dense admin tool. The identity resolves that tension by putting the brand's energy in the chrome — the navy sidebar, uppercase page titles, primary actions, and status — while the tables and forms stay white and legible. Blue is identity, white is workspace, and canary yellow is the rare, deliberate highlight.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">Color · role-mapped</p>
+    <div class="title-rule"><h2>Palette</h2><div class="tick"></div></div>
+    <p class="lead">Every value carries one job. Canary is a fill, indicator, or underline — never text on white. White text sits only on cobalt or navy.</p>
+    <div class="swatch-grid">
+      <div class="swatch"><div class="chip dark" style="background:#1E22C4"><span class="hex">#1E22C4</span></div><div class="body"><div class="name">Cobalt</div><div class="role">Primary brand blue — buttons, key chrome, active fills</div></div></div>
+      <div class="swatch"><div class="chip dark" style="background:#3B5BFF"><span class="hex">#3B5BFF</span></div><div class="body"><div class="name">Electric</div><div class="role">Links, focus rings, info accents</div></div></div>
+      <div class="swatch"><div class="chip dark" style="background:#0B0B45"><span class="hex">#0B0B45</span></div><div class="body"><div class="name">Navy</div><div class="role">Sidebar &amp; darkest chrome; headings on light</div></div></div>
+      <div class="swatch"><div class="chip" style="background:#FFD60A"><span class="hex">#FFD60A</span></div><div class="body"><div class="name">Canary</div><div class="role">Signature accent — active nav, one hero CTA, attention</div></div></div>
+      <div class="swatch"><div class="chip" style="background:#F6EFD8"><span class="hex">#F6EFD8</span></div><div class="body"><div class="name">Parchment</div><div class="role">Warm soft surface — empty states, identity panels</div></div></div>
+      <div class="swatch"><div class="chip dark" style="background:#14152E"><span class="hex">#14152E</span></div><div class="body"><div class="name">Ink</div><div class="role">Primary text</div></div></div>
+      <div class="swatch"><div class="chip dark" style="background:#565A78"><span class="hex">#565A78</span></div><div class="body"><div class="name">Slate</div><div class="role">Secondary text, captions, table meta</div></div></div>
+      <div class="swatch"><div class="chip" style="background:#EEF1F8"><span class="hex">#EEF1F8</span></div><div class="body"><div class="name">Mist</div><div class="role">App canvas background</div></div></div>
+      <div class="swatch"><div class="chip dark" style="background:#1E9E6A"><span class="hex">#1E9E6A</span></div><div class="body"><div class="name">Jade</div><div class="role">Success — submitted, valid</div></div></div>
+      <div class="swatch"><div class="chip" style="background:#E8A400"><span class="hex">#E8A400</span></div><div class="body"><div class="name">Amber</div><div class="role">Warning — needs review</div></div></div>
+      <div class="swatch"><div class="chip dark" style="background:#D64550"><span class="hex">#D64550</span></div><div class="body"><div class="name">Rose</div><div class="role">Danger — deactivate, delete, overload</div></div></div>
+      <div class="swatch"><div class="chip" style="background:#DCE0EC"><span class="hex">#DCE0EC</span></div><div class="body"><div class="name">Line</div><div class="role">Hairline borders, dividers</div></div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">Type · four roles + one moment</p>
+    <div class="title-rule"><h2>Typography</h2><div class="tick"></div></div>
+    <p class="lead">Archivo Black carries the poster voice in titles and stat numbers. Montserrat runs the UI. Inter with tabular figures owns anything columnar. Great Vibes appears exactly once — the login welcome.</p>
+    <div class="type-list">
+      <div class="type-row"><div class="meta"><b>Display</b>Archivo Black · uppercase · titles &amp; wordmark</div><div class="sp-display">Granted Institutional Load</div></div>
+      <div class="type-row"><div class="meta"><b>Display · stat</b>Archivo Black · big numerals</div><div class="sp-stat">27.0<span style="font-family:var(--data);font-size:15px;color:var(--slate);margin-left:8px">total hours</span></div></div>
+      <div class="type-row"><div class="meta"><b>Eyebrow</b>Montserrat 700 · 0.14em · uppercase</div><div class="sp-eyebrow">Submission status</div></div>
+      <div class="type-row"><div class="meta"><b>Heading / UI</b>Montserrat 700</div><div class="sp-head">Filipino Department — plantilla review</div></div>
+      <div class="type-row"><div class="meta"><b>Body</b>Montserrat 400</div><div class="sp-body">Upload the department plantilla and correct the extracted rows before submitting. Nothing becomes authoritative until you confirm the import.</div></div>
+      <div class="type-row"><div class="meta"><b>Data</b>Inter · tabular-nums</div><div class="sp-data">G7&nbsp;·&nbsp;Ignatius&nbsp;&nbsp;&nbsp;4.0&nbsp;h&nbsp;&nbsp;&nbsp;&nbsp;21.0&nbsp;/&nbsp;21.0&nbsp;&nbsp;&nbsp;&nbsp;0.00&nbsp;OL</div></div>
+      <div class="type-row"><div class="meta"><b>Script</b>Great Vibes · login only</div><div class="sp-script">Kumusta, Chair</div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">Signature · the Anuncio frame</p>
+    <div class="title-rule"><h2>Stat tiles &amp; devices</h2><div class="tick"></div></div>
+    <p class="lead">The posters' big-number drama, restrained to blue-on-white. Each page also wears the title rule — uppercase Archivo Black over a short canary tick.</p>
+    <div class="cards cols-3">
+      <div class="card"><div class="stat"><span class="k">Departments submitted</span><span class="v">5<span style="font-size:20px;color:var(--slate)">/7</span></span><span class="n">2 still in draft</span></div></div>
+      <div class="card"><div class="stat accent"><span class="k">Teachers encoded</span><span class="v">63</span><span class="n">across all departments</span></div></div>
+      <div class="card"><div class="stat"><span class="k">Open data-quality flags</span><span class="v" style="color:var(--amber)">8</span><span class="n">hour mismatches &amp; zero-section rows</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">Components</p>
+    <div class="title-rule"><h2>Buttons, inputs, status</h2><div class="tick"></div></div>
+    <div class="cards cols-2">
+      <div class="card">
+        <h3>Buttons</h3>
+        <p class="hint">One hero (canary) per page at most. Cobalt is the everyday primary.</p>
+        <div class="btn-row" style="margin-bottom:14px">
+          <button class="btn btn-primary">Save changes</button>
+          <button class="btn btn-hero">Confirm &amp; import</button>
+          <button class="btn btn-secondary">Cancel</button>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-ghost">Add row</button>
+          <button class="btn btn-danger">Deactivate</button>
+          <button class="btn btn-primary" disabled>Submit</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Form fields</h3>
+        <p class="hint">Label above, electric focus ring, rose for errors that explain the fix.</p>
+        <div class="field"><label for="a">Full name</label><input id="a" value="Leah Angelic C. Bilbar"></div>
+        <div class="field err"><label for="b">Email</label><input id="b" value="chair.fil"><span class="help">Enter a full email address, like chair.fil@jhs.test.</span></div>
+      </div>
+      <div class="card">
+        <h3>Submission status</h3>
+        <p class="hint">State reads in both color and label — never a bare enum key.</p>
+        <div class="pill-row">
+          <span class="pill draft">Draft</span>
+          <span class="pill submitted">Submitted</span>
+          <span class="pill returned">Returned</span>
+          <span class="pill locked">Locked</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Data-quality flags</h3>
+        <p class="hint">Humanized, severity-coded chips surfaced on teachers and dashboards.</p>
+        <div class="pill-row">
+          <span class="flag warn">No sections</span>
+          <span class="flag warn">No service load</span>
+          <span class="flag warn">Hour mismatch</span>
+          <span class="flag crit">Overloaded</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">Information design</p>
+    <div class="title-rule"><h2>Teacher load table</h2><div class="tick"></div></div>
+    <p class="lead">Numeric columns right-aligned with tabular figures; overload reads in red; flags ride alongside the name so what needs attention is visible without reading every row.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Teacher</th><th>Status</th><th class="num">Sections</th><th class="num">Teaching</th><th class="num">Non-teaching</th><th class="num">Total</th><th class="num">Overload</th></tr></thead>
+        <tbody>
+          <tr><td class="name">Leah Angelic C. Bilbar</td><td><span class="pill draft">Perm.</span></td><td class="num">1</td><td class="num">7.0</td><td class="num">18.0</td><td class="num">25.0</td><td class="num over">1.33</td></tr>
+          <tr><td class="name">Mary Gale T. Comeros</td><td><span class="pill draft">Perm.</span></td><td class="num">4</td><td class="num">16.0</td><td class="num">3.0</td><td class="num">19.0</td><td class="num">0.00</td></tr>
+          <tr><td class="name">Gino Calumpang <span class="flag warn" style="margin-left:6px">No sections</span></td><td><span class="pill draft">Perm.</span></td><td class="num">0</td><td class="num">0.0</td><td class="num">21.0</td><td class="num">21.0</td><td class="num">0.00</td></tr>
+          <tr><td class="name">Ken Cañales <span class="flag crit" style="margin-left:6px">Overloaded</span></td><td><span class="pill draft">Subst.</span></td><td class="num">3</td><td class="num">18.0</td><td class="num">9.0</td><td class="num">27.0</td><td class="num over">2.00</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">Layout · app shell</p>
+    <div class="title-rule"><h2>Sidebar &amp; page frame</h2><div class="tick"></div></div>
+    <p class="lead">Navy owns the sidebar — the one place saturated brand blue takes a whole surface. The active item carries the only canary in the chrome at rest. Content sits on mist with the title rule up top.</p>
+    <div class="shell">
+      <aside class="side">
+        <div class="wordmark"><span class="mark">J</span><span class="wm-txt"><b>JHS Load</b><small>Filipino Dept</small></span></div>
+        <div class="nav-group">Department</div>
+        <div class="nav-item active"><span class="dot"></span>Dashboard</div>
+        <div class="nav-item"><span class="dot"></span>Upload plantilla</div>
+        <div class="nav-item"><span class="dot"></span>Review &amp; correct</div>
+        <div class="nav-item"><span class="dot"></span>Teacher roster</div>
+        <div class="nav-item"><span class="dot"></span>Section assignments</div>
+        <div class="nav-item"><span class="dot"></span>Submit for review</div>
+        <div class="spacer"></div>
+        <div class="user-chip"><span class="av">LB</span><span><b>L. Bilbar</b><small>Department Chair</small></span></div>
+      </aside>
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Filipino · SY 2026–2027</p>
+            <h2>Department Dashboard</h2>
+            <div class="tick"></div>
+          </div>
+          <button class="btn btn-hero">Submit for review</button>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px">
+          <span class="pill draft">Draft</span>
+          <span style="font-size:13px;color:var(--slate)">10 teachers · 18 of 19 sections covered</span>
+        </div>
+        <div class="mini-stats">
+          <div class="mini"><div class="k">Teachers</div><div class="v">10</div></div>
+          <div class="mini"><div class="k">Sections covered</div><div class="v">18</div></div>
+          <div class="mini warn"><div class="k">Flags</div><div class="v">2</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">The one script moment</p>
+    <div class="title-rule"><h2>Sign in</h2><div class="tick"></div></div>
+    <p class="lead">The login is the app's identity moment — the cobalt radial ground, the Anuncio frame with its inset stroke, and the single use of Great Vibes. From here on, the working UI stays quiet.</p>
+    <div class="login-stage">
+      <div class="login-card">
+        <p class="greet">Kumusta</p>
+        <p class="wm">JHS Load &amp; Scheduling</p>
+        <div class="field"><label for="e">Email</label><input id="e" placeholder="chair.fil@jhs.test"></div>
+        <div class="field"><label for="p">Password</label><input id="p" type="password" placeholder="••••••••"></div>
+        <button class="btn btn-primary" style="width:100%;margin-top:6px">Sign in</button>
+      </div>
+    </div>
+    <p class="note">Fonts render through stacks that lead with the production faces (<code>Archivo Black</code>, <code>Montserrat</code>, <code>Inter</code>, <code>Great Vibes</code>) and fall back to system equivalents here. The Blade layout loads the real faces from Google Fonts, where fidelity is exact.</p>
+  </div>
+</section>
+
+<footer>
+  JHS Load &amp; Scheduling System · Institutional Atenista design system · The ADZU seal is a reference only and is never embedded in the app.
+</footer>
