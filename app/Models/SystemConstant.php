@@ -11,6 +11,21 @@ class SystemConstant extends Model
     /** Per-request cache so repeated lookups don't re-query. */
     protected static array $cache = [];
 
+    /**
+     * Any write (including a direct Eloquent update) invalidates the cached
+     * value so the next read reflects it — keeps get() honest.
+     */
+    protected static function booted(): void
+    {
+        static::saved(fn (self $constant) => static::forget($constant->key));
+        static::deleted(fn (self $constant) => static::forget($constant->key));
+    }
+
+    public static function forget(string $key): void
+    {
+        unset(static::$cache[$key]);
+    }
+
     public static function get(string $key, mixed $default = null): mixed
     {
         if (array_key_exists($key, static::$cache)) {
