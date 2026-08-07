@@ -1,0 +1,647 @@
+.vault-mcp-dashboard {
+  display: grid;
+  gap: 12px;
+}
+
+.vault-mcp-dashboard--compact {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.vault-mcp-dashboard__stat {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  padding: 10px;
+  overflow-wrap: anywhere;
+}
+
+.vault-mcp-dashboard__label {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.vault-mcp-dashboard__value {
+  font-size: var(--font-ui-large);
+  font-weight: 700;
+}
+
+.vault-mcp-muted {
+  color: var(--text-muted);
+}
+
+.vault-mcp-setup {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  margin: 10px 0 14px;
+  padding: 14px;
+}
+
+.vault-mcp-setup__eyebrow {
+  color: var(--text-accent);
+  font-size: var(--font-ui-smaller);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.vault-mcp-setup__title {
+  font-size: var(--font-ui-large);
+  font-weight: 800;
+  margin-top: 3px;
+}
+
+.vault-mcp-setup__summary {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  margin-top: 6px;
+}
+
+.vault-mcp-copy-value {
+  align-items: center;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding: 10px;
+}
+
+.vault-mcp-copy-value--compact {
+  align-items: flex-start;
+  margin-top: 10px;
+}
+
+.vault-mcp-copy-value__body {
+  min-width: 0;
+}
+
+.vault-mcp-copy-value__text {
+  font-family: var(--font-monospace);
+  font-size: var(--font-ui-small);
+  overflow-wrap: anywhere;
+}
+
+.vault-mcp-copy-value__action {
+  flex: 0 0 auto;
+}
+
+.vault-mcp-copy-value__action .setting-item {
+  border: 0;
+  padding: 0;
+}
+
+.vault-mcp-setup-steps {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.vault-mcp-setup-step {
+  align-items: flex-start;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  display: flex;
+  gap: 8px;
+  padding: 9px;
+}
+
+.vault-mcp-setup-step--done {
+  border-color: rgba(var(--color-green-rgb), 0.4);
+}
+
+.vault-mcp-setup-step--next,
+.vault-mcp-setup-step--later {
+  border-color: rgba(var(--color-orange-rgb), 0.4);
+}
+
+.vault-mcp-setup-step--blocked {
+  border-color: rgba(var(--color-red-rgb), 0.45);
+}
+
+.vault-mcp-setup-step__status {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 999px;
+  font-size: var(--font-ui-smaller);
+  font-weight: 700;
+  line-height: 1.4;
+  padding: 2px 7px;
+  text-transform: uppercase;
+}
+
+.vault-mcp-setup-step__body {
+  min-width: 0;
+}
+
+.vault-mcp-setup-step__label {
+  font-weight: 700;
+}
+
+.vault-mcp-setup-step__message {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+}
+
+.vault-mcp-setup-section {
+  border-top: 1px solid var(--background-modifier-border);
+  margin-top: 14px;
+  padding-top: 12px;
+}
+
+.vault-mcp-setup-section > summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.vault-mcp-setup-card-grid {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.vault-mcp-setup-card {
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.vault-mcp-setup-card--planned,
+.vault-mcp-setup-card--available {
+  border-color: rgba(var(--color-green-rgb), 0.35);
+}
+
+.vault-mcp-setup-card--advanced {
+  border-color: rgba(var(--color-orange-rgb), 0.35);
+}
+
+.vault-mcp-setup-card__list {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.vault-mcp-setup-card__list li {
+  margin: 4px 0;
+}
+
+.vault-mcp-setup-card__actions {
+  margin-top: 10px;
+}
+
+.vault-mcp-setup-card__actions .setting-item {
+  border: 0;
+  padding: 0;
+}
+
+.vault-mcp-disclosure {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-left: 4px solid var(--interactive-accent);
+  border-radius: 8px;
+  margin: 10px 0 14px;
+  padding: 12px;
+}
+
+.vault-mcp-disclosure__title {
+  font-weight: 700;
+}
+
+.vault-mcp-disclosure__summary {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  margin-top: 4px;
+}
+
+.vault-mcp-disclosure__list {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.vault-mcp-disclosure__list li {
+  margin: 4px 0;
+}
+
+.vault-mcp-checklist {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  margin: 10px 0 14px;
+  padding: 12px;
+}
+
+.vault-mcp-checklist__title {
+  font-weight: 700;
+}
+
+.vault-mcp-checklist__summary {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  margin-top: 4px;
+}
+
+.vault-mcp-checklist__items {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.vault-mcp-checklist__item {
+  align-items: flex-start;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+}
+
+.vault-mcp-checklist__item--blocked {
+  border-color: rgba(var(--color-red-rgb), 0.45);
+}
+
+.vault-mcp-checklist__item--warning {
+  border-color: rgba(var(--color-orange-rgb), 0.45);
+}
+
+.vault-mcp-checklist__item--ready {
+  border-color: rgba(var(--color-green-rgb), 0.4);
+}
+
+.vault-mcp-checklist__status {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 999px;
+  font-size: var(--font-ui-smaller);
+  font-weight: 700;
+  line-height: 1.4;
+  padding: 2px 7px;
+  text-transform: uppercase;
+}
+
+.vault-mcp-checklist__body {
+  min-width: 0;
+}
+
+.vault-mcp-checklist__label {
+  font-weight: 700;
+}
+
+.vault-mcp-checklist__message {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+}
+
+.vault-mcp-server-check {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  margin: 10px 0 14px;
+  padding: 12px;
+}
+
+.vault-mcp-server-check--ready {
+  border-color: rgba(var(--color-green-rgb), 0.45);
+}
+
+.vault-mcp-server-check--warning,
+.vault-mcp-server-check--unknown,
+.vault-mcp-server-check--planned {
+  border-color: rgba(var(--color-orange-rgb), 0.45);
+}
+
+.vault-mcp-server-check--blocked,
+.vault-mcp-server-check--invalid {
+  border-color: rgba(var(--color-red-rgb), 0.45);
+}
+
+.vault-mcp-server-check__title {
+  font-weight: 700;
+}
+
+.vault-mcp-server-check__message,
+.vault-mcp-server-check__checked {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  margin-top: 4px;
+}
+
+.vault-mcp-server-check__facts {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.vault-mcp-server-check__facts li {
+  margin: 4px 0;
+  overflow-wrap: anywhere;
+}
+
+.vault-mcp-sync-summary {
+  border: 1px solid rgba(var(--color-green-rgb), 0.45);
+  border-radius: 8px;
+  margin-top: 14px;
+  padding: 10px;
+}
+
+.vault-mcp-preview-section {
+  border-top: 1px solid var(--background-modifier-border);
+  margin-top: 14px;
+  padding-top: 12px;
+}
+
+.vault-mcp-preview-section > summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.vault-mcp-troubleshooting ul {
+  margin-bottom: 0;
+}
+
+.vault-mcp-preview-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+  max-height: 420px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.vault-mcp-preview-card {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.vault-mcp-preview-card--review {
+  border-color: rgba(var(--color-orange-rgb), 0.45);
+}
+
+.vault-mcp-preview-card__header {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.vault-mcp-preview-card__title {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.vault-mcp-preview-card__path,
+.vault-mcp-preview-card__reason {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+}
+
+.vault-mcp-preview-card__meta,
+.vault-mcp-preview-card__tags,
+.vault-mcp-preview-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.vault-mcp-preview-card__meta span,
+.vault-mcp-tag,
+.vault-mcp-chip {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  line-height: 1.4;
+  padding: 2px 7px;
+}
+
+.vault-mcp-chip {
+  color: var(--text-normal);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.vault-mcp-chip--allow {
+  background: rgba(var(--color-green-rgb), 0.16);
+}
+
+.vault-mcp-chip--review {
+  background: rgba(var(--color-orange-rgb), 0.18);
+}
+
+.vault-mcp-chip--deny {
+  background: rgba(var(--color-red-rgb), 0.16);
+}
+
+.vault-mcp-history-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.vault-mcp-history-row {
+  align-items: flex-start;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+}
+
+.vault-mcp-history-row__body {
+  min-width: 0;
+}
+
+.vault-mcp-history-row__message {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.vault-mcp-history-row__meta {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+}
+
+.vault-mcp-proposal-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+  max-height: 520px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.vault-mcp-proposal-card {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.vault-mcp-code-preview {
+  margin-top: 10px;
+}
+
+.vault-mcp-code-preview pre {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  font-size: var(--font-ui-smaller);
+  margin: 6px 0 0;
+  max-height: 220px;
+  overflow: auto;
+  padding: 10px;
+  white-space: pre-wrap;
+}
+
+.vault-mcp-proposal-audit {
+  margin-top: 10px;
+}
+
+.vault-mcp-proposal-audit > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.vault-mcp-safety {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  margin-top: 10px;
+  padding: 10px;
+}
+
+.vault-mcp-safety--ready {
+  border-color: rgba(var(--color-green-rgb), 0.45);
+}
+
+.vault-mcp-safety--conflict,
+.vault-mcp-safety--missing-target,
+.vault-mcp-safety--existing-target {
+  border-color: rgba(var(--color-red-rgb), 0.45);
+}
+
+.vault-mcp-safety--unsupported {
+  border-color: rgba(var(--color-orange-rgb), 0.45);
+}
+
+.vault-mcp-safety__title {
+  font-weight: 700;
+}
+
+.vault-mcp-safety__message {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  margin-top: 4px;
+}
+
+.vault-mcp-sidebar {
+  padding: 14px;
+}
+
+.vault-mcp-sidebar__header {
+  align-items: flex-start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.vault-mcp-sidebar__header h2 {
+  font-size: var(--font-ui-large);
+  margin: 0;
+}
+
+.vault-mcp-sidebar__vault {
+  color: var(--text-muted);
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vault-mcp-status-pill {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 999px;
+  flex: 0 0 auto;
+  font-size: var(--font-ui-smaller);
+  font-weight: 700;
+  padding: 4px 8px;
+}
+
+.vault-mcp-status-pill--online {
+  background: rgba(var(--color-green-rgb), 0.12);
+  border-color: rgba(var(--color-green-rgb), 0.5);
+  color: var(--color-green);
+}
+
+.vault-mcp-status-pill--off {
+  color: var(--text-muted);
+}
+
+.vault-mcp-access-card {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-left: 4px solid var(--text-muted);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  padding: 12px;
+}
+
+.vault-mcp-access-card--read {
+  border-left-color: var(--color-blue);
+}
+
+.vault-mcp-access-card--write {
+  border-left-color: var(--color-green);
+}
+
+.vault-mcp-access-card--god {
+  border-color: rgba(var(--color-red-rgb), 0.55);
+  border-left-color: var(--color-red);
+}
+
+.vault-mcp-access-card__eyebrow {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.vault-mcp-access-card__mode {
+  font-size: var(--font-ui-large);
+  font-weight: 800;
+  margin-top: 3px;
+}
+
+.vault-mcp-access-card__description {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  margin-top: 5px;
+}
+
+.vault-mcp-sidebar__actions {
+  margin-top: 10px;
+}
+
+.vault-mcp-sidebar__actions .setting-item {
+  padding: 6px 0;
+}
+
+.vault-mcp-sidebar__error,
+.vault-mcp-god-mode-notice {
+  border: 1px solid rgba(var(--color-red-rgb), 0.5);
+  border-radius: 8px;
+  margin-top: 12px;
+  padding: 10px;
+}
+
+.vault-mcp-sidebar__error-title,
+.vault-mcp-god-mode-notice__title {
+  font-weight: 800;
+  margin-bottom: 4px;
+}

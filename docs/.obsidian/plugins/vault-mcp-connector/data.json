@@ -1,0 +1,157 @@
+{
+  "serverUrl": "https://vault-mcp-connector.vercel.app",
+  "syncToken": "",
+  "tenantId": "default",
+  "vaultId": "default",
+  "installationId": "obsidian-plugin-local",
+  "indexMode": "rules_plus_approvals",
+  "writeMode": "review_required",
+  "includePrefixes": [
+    "00 System/Task Hub.md",
+    "20 Projects/",
+    "40 Reference/##"
+  ],
+  "excludePrefixes": [
+    "00 System/Credentials/",
+    "02 Daily/",
+    "Daily Notes/",
+    "50 Areas/Finance/",
+    "50 Areas/Identity/",
+    "50 Areas/Legal/",
+    "90 Archive/"
+  ],
+  "manualAllowPaths": [],
+  "manualAllowPrefixes": [],
+  "syncIntervalMinutes": 0,
+  "writeAuditFolder": "00 System/Vault MCP Write Audit",
+  "localServerModeEnabled": true,
+  "localServerPort": 38791,
+  "localServerKeepAlive": false,
+  "localServerDataDir": "data/local-server",
+  "localServerMcpToken": "_g0_kYZ-lew7wI3RZgPAJtGI9TIcqRKI",
+  "localServerSyncToken": "Z5dYgDmGOG5M-lk2zROQnd3Jt7mRSzdq",
+  "localServerCredentialsCreatedAt": "2026-08-04T03:14:03.876Z",
+  "localServerProjectDir": "",
+  "localServerCommand": "npm",
+  "localFsAccessMode": "god",
+  "localFsReadRoots": [],
+  "localFsWriteRoots": [],
+  "localFsWriteOperations": [
+    "write_file",
+    "edit_file",
+    "create_directory",
+    "copy_path",
+    "move_path",
+    "delete_path"
+  ],
+  "localFsMaxReadBytes": 524288,
+  "localFsMaxSearchResults": 100,
+  "localFsMaxSearchFiles": 2000,
+  "localFsAccessTtlMinutes": 120,
+  "localFsRequireUserIntent": true,
+  "localFsUserIntentPhrase": "use local filesystem",
+  "hostedLocalBridgeEnabled": false,
+  "hostedLocalBridgePollSeconds": 1,
+  "syncHistory": [
+    {
+      "type": "error",
+      "message": "Server check failed: Request failed, status 503",
+      "createdAt": "2026-08-04T07:37:10.510Z"
+    },
+    {
+      "type": "local-server",
+      "message": "Local server ready on http://127.0.0.1:38791/mcp (json storage, version 0.2.1).",
+      "createdAt": "2026-08-04T07:29:52.602Z"
+    },
+    {
+      "type": "local-server",
+      "message": "Starting local server on http://127.0.0.1:38791/mcp.",
+      "createdAt": "2026-08-04T07:29:52.275Z"
+    },
+    {
+      "type": "local-server",
+      "message": "Local server port 38791 is available.",
+      "createdAt": "2026-08-04T07:29:52.208Z"
+    },
+    {
+      "type": "local-server",
+      "message": "Local server stopped (exit code 0).",
+      "createdAt": "2026-08-04T07:29:46.970Z"
+    },
+    {
+      "type": "local-server",
+      "message": "Stopped by user.",
+      "createdAt": "2026-08-04T07:29:46.926Z"
+    },
+    {
+      "type": "local-server",
+      "message": "Local server ready on http://127.0.0.1:38791/mcp (json storage, version 0.2.1).",
+      "createdAt": "2026-08-04T07:27:34.091Z"
+    },
+    {
+      "type": "local-server",
+      "message": "Starting local server on http://127.0.0.1:38791/mcp.",
+      "createdAt": "2026-08-04T07:27:33.922Z"
+    },
+    {
+      "type": "local-server",
+      "message": "Local server port 38791 is available.",
+      "createdAt": "2026-08-04T07:27:33.872Z"
+    },
+    {
+      "type": "local-server",
+      "message": "Disconnected from the compatible local server. No Obsidian-owned process was running.",
+      "createdAt": "2026-08-04T07:27:28.657Z"
+    },
+    {
+      "type": "local-server",
+      "message": "Local server ready on http://127.0.0.1:38791/mcp (json storage, version 0.2.1).",
+      "createdAt": "2026-08-04T05:18:38.921Z"
+    },
+    {
+      "type": "local-server",
+      "message": "Starting local server on http://127.0.0.1:38791/mcp.",
+      "createdAt": "2026-08-04T05:18:38.600Z"
+    },
+    {
+      "type": "local-server",
+      "message": "Local server port 38791 is available.",
+      "createdAt": "2026-08-04T05:18:38.513Z"
+    },
+    {
+      "type": "local-server",
+      "message": "Disconnected from the compatible local server. No Obsidian-owned process was running.",
+      "createdAt": "2026-08-04T05:18:29.434Z"
+    },
+    {
+      "type": "local-server",
+      "message": "Local server ready on http://127.0.0.1:38791/mcp (json storage, version 0.2.1).",
+      "createdAt": "2026-08-04T04:23:54.150Z"
+    },
+    {
+      "type": "local-server",
+      "message": "Starting local server on http://127.0.0.1:38791/mcp.",
+      "createdAt": "2026-08-04T04:23:54.138Z"
+    },
+    {
+      "type": "local-server",
+      "message": "Local server port 38791 is available.",
+      "createdAt": "2026-08-04T04:23:54.069Z"
+    },
+    {
+      "type": "local-server",
+      "message": "Local server stopped (exit code 0).",
+      "createdAt": "2026-08-04T04:23:52.832Z"
+    },
+    {
+      "type": "local-server",
+      "message": "Refreshing local filesystem access session on http://127.0.0.1:38791/mcp.",
+      "createdAt": "2026-08-04T04:23:52.832Z"
+    },
+    {
+      "type": "local-server",
+      "message": "Local server ready on http://127.0.0.1:38791/mcp (json storage, version 0.2.1).",
+      "createdAt": "2026-08-04T04:23:29.504Z"
+    }
+  ]
+}
