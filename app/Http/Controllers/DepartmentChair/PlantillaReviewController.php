@@ -14,6 +14,26 @@ use Illuminate\Http\RedirectResponse;
 
 class PlantillaReviewController extends Controller
 {
+    public function confirm(PlantillaReviewService $reviewService): RedirectResponse
+    {
+        $submission = PlantillaSubmission::currentFor(auth()->user()->department_id);
+        $this->authorize('update', $submission);
+
+        $upload = $this->latestUpload($submission);
+        abort_unless($upload, 404, 'There is nothing to import yet.');
+
+        $result = $reviewService->confirmImport($upload);
+
+        $message = "Imported {$result['imported']} teacher(s).";
+        if (! empty($result['skipped'])) {
+            return redirect()->route('chair.teachers.index')
+                ->with('status', $message)
+                ->with('warning', count($result['skipped']) . ' row(s) were skipped: ' . implode(' ', $result['skipped']));
+        }
+
+        return redirect()->route('chair.teachers.index')->with('status', $message);
+    }
+
     public function show(): View
     {
         $submission = PlantillaSubmission::currentFor(auth()->user()->department_id);
