@@ -20,6 +20,13 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'role:system_admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [Admin\DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('users', [Admin\UserController::class, 'index'])->name('users.index');
+    Route::get('users/create', [Admin\UserController::class, 'create'])->name('users.create');
+    Route::post('users', [Admin\UserController::class, 'store'])->name('users.store');
+    Route::get('users/{user}/edit', [Admin\UserController::class, 'edit'])->name('users.edit');
+    Route::put('users/{user}', [Admin\UserController::class, 'update'])->name('users.update');
+    Route::patch('users/{user}/toggle', [Admin\UserController::class, 'toggleActive'])->name('users.toggle');
 });
 
 Route::middleware(['auth', 'role:department_chair'])->prefix('chair')->name('chair.')->group(function () {
