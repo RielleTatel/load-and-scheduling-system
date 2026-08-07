@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Enums\UserRole;
+use App\Models\Department;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -30,6 +32,9 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'role' => UserRole::SystemAdmin,
+            'department_id' => null,
+            'is_active' => true,
         ];
     }
 
@@ -40,6 +45,28 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    /**
+     * A department chair, scoped to the given (or a new) department.
+     */
+    public function chair(?Department $department = null): static
+    {
+        return $this->state(fn () => [
+            'role' => UserRole::DepartmentChair,
+            'department_id' => ($department ?? Department::factory()->create())->id,
+        ]);
+    }
+
+    /**
+     * An academic coordinator (no department scope).
+     */
+    public function coordinator(): static
+    {
+        return $this->state(fn () => [
+            'role' => UserRole::AcademicCoordinator,
+            'department_id' => null,
         ]);
     }
 }
