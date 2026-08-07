@@ -36,6 +36,8 @@ Route::middleware(['auth', 'role:system_admin'])->prefix('admin')->name('admin.'
     Route::post('roles', [Admin\AssignmentRoleController::class, 'store'])->name('roles.store');
     Route::get('roles/{role}/edit', [Admin\AssignmentRoleController::class, 'edit'])->name('roles.edit');
     Route::put('roles/{role}', [Admin\AssignmentRoleController::class, 'update'])->name('roles.update');
+
+    Route::get('audit', [Admin\AuditLogController::class, 'index'])->name('audit.index');
 });
 
 Route::middleware(['auth', 'role:department_chair'])->prefix('chair')->name('chair.')->group(function () {
