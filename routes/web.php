@@ -30,6 +30,12 @@ Route::middleware(['auth', 'role:system_admin'])->prefix('admin')->name('admin.'
 
     Route::get('constants', [Admin\SystemConstantController::class, 'index'])->name('constants.index');
     Route::patch('constants/{systemConstant}', [Admin\SystemConstantController::class, 'update'])->name('constants.update');
+
+    Route::get('roles', [Admin\AssignmentRoleController::class, 'index'])->name('roles.index');
+    Route::get('roles/create', [Admin\AssignmentRoleController::class, 'create'])->name('roles.create');
+    Route::post('roles', [Admin\AssignmentRoleController::class, 'store'])->name('roles.store');
+    Route::get('roles/{role}/edit', [Admin\AssignmentRoleController::class, 'edit'])->name('roles.edit');
+    Route::put('roles/{role}', [Admin\AssignmentRoleController::class, 'update'])->name('roles.update');
 });
 
 Route::middleware(['auth', 'role:department_chair'])->prefix('chair')->name('chair.')->group(function () {
