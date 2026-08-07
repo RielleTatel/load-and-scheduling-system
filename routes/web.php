@@ -27,6 +27,9 @@ Route::middleware(['auth', 'role:system_admin'])->prefix('admin')->name('admin.'
     Route::get('users/{user}/edit', [Admin\UserController::class, 'edit'])->name('users.edit');
     Route::put('users/{user}', [Admin\UserController::class, 'update'])->name('users.update');
     Route::patch('users/{user}/toggle', [Admin\UserController::class, 'toggleActive'])->name('users.toggle');
+
+    Route::get('constants', [Admin\SystemConstantController::class, 'index'])->name('constants.index');
+    Route::patch('constants/{systemConstant}', [Admin\SystemConstantController::class, 'update'])->name('constants.update');
 });
 
 Route::middleware(['auth', 'role:department_chair'])->prefix('chair')->name('chair.')->group(function () {
