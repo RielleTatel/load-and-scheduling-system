@@ -57,6 +57,14 @@ Route::middleware(['auth', 'role:department_chair'])->prefix('chair')->name('cha
     Route::post('teachers', [DepartmentChair\TeacherController::class, 'store'])->name('teachers.store');
     Route::get('teachers/{teacher}/edit', [DepartmentChair\TeacherController::class, 'edit'])->name('teachers.edit');
     Route::put('teachers/{teacher}', [DepartmentChair\TeacherController::class, 'update'])->name('teachers.update');
+
+    Route::get('assignments', [DepartmentChair\SectionAssignmentController::class, 'index'])->name('assignments.index');
+    Route::post('assignments', [DepartmentChair\SectionAssignmentController::class, 'store'])->name('assignments.store');
+    Route::delete('assignments', [DepartmentChair\SectionAssignmentController::class, 'destroy'])->name('assignments.destroy');
+    Route::post('moderators', [DepartmentChair\SectionAssignmentController::class, 'storeModerator'])->name('moderators.store');
+    Route::delete('moderators', [DepartmentChair\SectionAssignmentController::class, 'destroyModerator'])->name('moderators.destroy');
+    Route::post('honors', [DepartmentChair\SectionAssignmentController::class, 'storeHonors'])->name('honors.store');
+    Route::delete('honors', [DepartmentChair\SectionAssignmentController::class, 'destroyHonors'])->name('honors.destroy');
 });
 
 require __DIR__.'/auth.php';
