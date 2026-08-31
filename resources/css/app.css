@@ -78,4 +78,30 @@
     }
     .field-help { @apply text-[12.5px] text-slate-brand mt-1.5; }
     .field-error { @apply text-[12.5px] text-rose-brand mt-1.5; }
+
+    /* Review ledger — plantilla rows as numbered ledger entries, mirroring the
+       numbered rows of the paper plantilla the Chair is checking against. */
+    .ledger-row { @apply card overflow-hidden; }
+    .ledger-row-flagged { @apply border-l-4 border-l-amber-brand; }
+    .ledger-summary {
+        @apply flex items-center gap-4 px-5 py-4 cursor-pointer select-none list-none;
+    }
+    .ledger-summary::-webkit-details-marker { display: none; }
+    .ledger-summary:hover { @apply bg-mist/60; }
+    .ledger-ordinal {
+        @apply font-display text-[24px] leading-none text-cobalt/25 w-10 shrink-0 text-right;
+    }
+    .ledger-row[open] .ledger-ordinal { @apply text-cobalt; }
+    .ledger-chevron { @apply shrink-0 text-slate-brand transition-transform duration-150; }
+    .ledger-row[open] .ledger-chevron { transform: rotate(180deg); }
+    .ledger-body { @apply border-t border-line px-5 py-5; }
+    @media (prefers-reduced-motion: reduce) {
+        .ledger-chevron { @apply transition-none; }
+    }
+
+    /* Mini poster-number stat, for the review progress strip. */
+    .stat-mini-number { @apply font-display text-[26px] leading-none text-ink; }
+    .stat-mini-label {
+        @apply block font-bold text-[11px] uppercase tracking-[0.12em] text-slate-brand mt-1.5;
+    }
 }
