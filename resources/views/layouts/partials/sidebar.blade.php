@@ -12,6 +12,12 @@
                 ['label' => 'Assignment roles', 'route' => 'admin.roles.index'],
                 ['label' => 'Audit log', 'route' => 'admin.audit.index'],
             ],
+            // Registrar reference data — school-wide, re-issued each year, and
+            // what every department's plantilla import is validated against.
+            'Reference data' => [
+                ['label' => 'Section roster', 'route' => 'admin.sections.index'],
+                ['label' => 'Teacher directory', 'route' => 'admin.teachers.index'],
+            ],
         ]
         : [
             'Department' => [

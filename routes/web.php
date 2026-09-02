@@ -37,6 +37,20 @@ Route::middleware(['auth', 'role:system_admin'])->prefix('admin')->name('admin.'
     Route::get('roles/{role}/edit', [Admin\AssignmentRoleController::class, 'edit'])->name('roles.edit');
     Route::put('roles/{role}', [Admin\AssignmentRoleController::class, 'update'])->name('roles.update');
 
+    // Registrar reference data: school-wide, re-issued each year, and the
+    // cross-check every department's plantilla import is validated against.
+    Route::get('sections', [Admin\SectionController::class, 'index'])->name('sections.index');
+    Route::get('sections/create', [Admin\SectionController::class, 'create'])->name('sections.create');
+    Route::post('sections', [Admin\SectionController::class, 'store'])->name('sections.store');
+    Route::get('sections/{section}/edit', [Admin\SectionController::class, 'edit'])->name('sections.edit');
+    Route::put('sections/{section}', [Admin\SectionController::class, 'update'])->name('sections.update');
+
+    Route::get('teachers', [Admin\TeacherDirectoryController::class, 'index'])->name('teachers.index');
+    Route::get('teachers/create', [Admin\TeacherDirectoryController::class, 'create'])->name('teachers.create');
+    Route::post('teachers', [Admin\TeacherDirectoryController::class, 'store'])->name('teachers.store');
+    Route::get('teachers/{teacher}/edit', [Admin\TeacherDirectoryController::class, 'edit'])->name('teachers.edit');
+    Route::put('teachers/{teacher}', [Admin\TeacherDirectoryController::class, 'update'])->name('teachers.update');
+
     Route::get('audit', [Admin\AuditLogController::class, 'index'])->name('audit.index');
 });
 
