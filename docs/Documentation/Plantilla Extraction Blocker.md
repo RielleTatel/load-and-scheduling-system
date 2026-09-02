@@ -1,233 +1,183 @@
-4# Plantilla Extraction Blocker — Grade Attribution & Format Variance
+# Plantilla Extraction — Grade Attribution & Format Variance
 
-Status: **Open blocker**, documented 2026-08-08. Deferred for a later work-around.
+Status: **Resolved, 2026-09-02.** Originally raised 2026-08-08 as an open blocker.
 Related: [[JHS System SRS]] §6.2, [[JHS Sections Directory]], [[JHS Department Directory]].
-Code: `app/Services/Plantilla/PdfExtractionService.php`, `app/Services/Plantilla/PlantillaReviewService.php`.
+Code: `app/Services/Plantilla/SectionResolver.php`, `app/Services/Plantilla/PdfExtractionService.php`,
+`app/Services/Plantilla/PlantillaReviewService.php`, `database/seeders/SectionSeeder.php`.
 
 ---
 
-## 1. Summary
+## 1. What the blocker was
 
-The Review & Correct screen extracts only **Teacher name** and **Employment status** from an
-uploaded plantilla PDF. Sections, Class Moderator, Honor's Class, Service Load, and Other
-Assignment come through blank, even though all of that data is printed in the source PDF and the
-downstream import pipeline is already built to consume it.
+The Review & Correct screen extracted only **Teacher name** and **Employment status**. Sections,
+Class Moderator, Honor's Class, Service Load and Other Assignment all came through blank.
 
-The extractor is the only broken link. Two distinct problems are tangled together here:
+The original diagnosis split this in two:
 
-1. **A false limitation (the ~80%).** Section names, moderator, service load, and other-assignment
-   text all survive PDF text extraction and are simply never read. This is fixable.
-2. **A real limitation (the ~20%).** *Which grade column* (G7/G8/G9/G10) a teaching-section block
-   sits under is lost when the PDF table is flattened to text, and section names repeat so
-   pervasively across grades that a name→grade lookup cannot recover it. This is the actual blocker.
+1. *A false limitation (~80%)* — those fields survive text extraction and were simply never read.
+2. *A real limitation (~20%)* — which grade column a section sits under is lost when the table is
+   flattened, "and section names repeat so pervasively across grades that a name→grade lookup
+   cannot recover it. **This is the actual blocker.**"
 
----
+**Claim 1 was correct. Claim 2 was wrong**, and it was the claim that caused the work to be deferred.
 
-## 2. Where the data is discarded
+## 2. Why claim 2 was wrong
 
-`PdfExtractionService::finalize()` parses the name and `(status)`, then hardcodes every other field
-to `null`:
+The registrar's *List of Class Mods and Teacher-Partners 2026* gives the authoritative roster:
+**36 sections, nine per grade, and no name reused across grades.**
 
-```php
-// app/Services/Plantilla/PdfExtractionService.php  (finalize)
-'sections' => null,   // grade/section columns don't survive flat extraction
-'cm' => null,
-'hc' => null,
-'service_load' => null,
-'other_assignment' => null,
-```
-
-That inline comment is **mostly false** — see §4. The names, moderator, service load, and other
-assignment all survive; only the teaching-section *grade prefix* is genuinely lost.
-
-The rest of the pipeline already expects these fields:
-
-- `UpdateExtractionRowRequest` validates and accepts all seven fields.
-- `PlantillaReviewService::confirmImport()` reads `sections`, `cm`, `hc`, `service_load`,
-  `other_assignment`, parses `"G7: Ignatius, Xavier; G9: Kostka"` strings via `parseSections()`,
-  and writes them into the authoritative tables.
-
-So improving the extractor requires **no downstream schema changes** — it only needs to populate the
-staging fields in the format `parseSections()` already understands.
-
----
-
-## 3. Proof that the raw text carries the data
-
-Raw text as the parser (`Smalot\PdfParser`) actually sees it, Filipino sheet:
+That is confirmed by a second, independent source. The TLE sheet embeds the grade in the section
+name, and extracting those prefixes reproduces the registrar's mapping exactly, 36 for 36:
 
 ```
-1.​Leah Angelic C. Bilbar
- (Permanent)
- 1 (Ignatius)          <- teaching section
- 4 3  Department Chair  <- teaching-hours, service-load=3, other assignment
-15 18 22 0.33
-
-3.​Cristie R. Delos Reyes
- (Permanent)
- 4 (Arrowsmith, Jogues, Campion, Rubio)   <- four sections, names intact
- G7 Class Moderator (Rubio)                <- moderator, grade STATED
- 20 3   3 23 0.67                          <- service load = 3
+7Arrowsmith 7Bellarmine 7Campion 7Claver 7De(Britto) 7Jogues 7Pongracz 7Regis 7Rubio
+8Borgia 8Briant 8Goupil 8Lewis 8Loyola 8Ogilvie 8Pignatelli 8Realino 8Xavier
+9Anchieta 9Brebeuf 9Evans 9Garnet 9Jerome 9Kostka 9Morse 9Owen 9Rodriguez
+10Berchmans 10Canisius 10Chabanel 10Colombiere 10Daniel 10Faber 10Hurtado 10Mayer 10Southwell
 ```
 
-Section names, moderator (with its grade), service load, and other assignment are all present.
+The old §6 claimed 37 of 43 names (86%) repeated across grades. That table was built entirely from
+[[JHS Sections Directory]] — which was itself the *output* of the broken attribution. It inferred
+"names collide" from data corrupted by the very bug it was diagnosing. Its hedge that "any
+correction can only *add* collisions, never remove them" is backwards: the correction removes all
+of them.
 
----
+Its one directory-independent argument — the Science sheet tagging `Magis` as G8, G9 and G10 —
+does not hold either. **`Magis` is not a section name.** It is a modifier on three distinct
+sections (Ignatius of Loyola G8, Kostka G9, Faber G10), none of which collide. Reading it as a name
+is what made the collision look real, and `SectionResolver` now treats it as a stopword for exactly
+that reason.
 
-## 4. Format variance across the 7 sheets
+### It was never an OCR problem
 
-The extractor is currently tuned to one department's quirks. The seven sheets fall into ~3 families
-and no single regex fits all of them.
+`Smalot\PdfParser` reads the PDFs' **embedded text layer** — these are Word exports, and no
+character was ever misread. What was lost is 2D table geometry: a token read perfectly, but no
+longer under its column header. The spelling variants below (`De Brito`, `Anchietta`) are human
+typos in the source documents, not extraction noise.
 
-| Sheet | Section-list style | Grade recoverable from text? | Honor's col | Status format |
+## 3. The fix
+
+Grade is no longer read from the sheet at all. It comes from the roster, because names are unique.
+
+- **`SectionSeeder`** holds the canonical 36 sections with grade, room, official name and Magis flag.
+  `SeedTest` asserts nine per grade and school-wide name uniqueness — if a future year reuses a
+  name, the build fails loudly and this strategy must be revisited rather than silently misfiling.
+- **`SectionResolver`** maps a name as written to a canonical `Section`: strips embedded grade
+  prefixes, rejoins names wrapped mid-line (`Ignatius of` / `Loyola`), applies an explicit alias
+  table, and falls back to a fuzzy match. It **never invents a section**.
+- **`PdfExtractionService`** parses by marker rather than geometry — section names are recognised
+  against the roster, and the Class Moderator and Honor's Class cells by the keywords introducing
+  them. This absorbs the format variance in §4 below.
+- **`PlantillaReviewService`** no longer calls `Section::firstOrCreate()`. Unknown names are
+  skipped with a reason. That call is how 85 sections came to exist in a 36-section school.
+
+### Fuzzy matching is bounded at one edit
+
+Two canonical names are only two edits apart (`Regis`/`Lewis`, `Faber`/`Mayer`), so a 2-edit
+threshold could silently land on a different real section. Auto-accept requires distance ≤ 1, a
+unique winner, and a margin of ≥ 2 to the runner-up. All four known variants (`De Brito`,
+`Anchietta`, `Colombierre`, `Berchman`) sit at distance 1 with a margin of ≥ 4.
+
+Rejoining wrapped names must happen **before** fuzzy matching: a bare `Ignatius` is 4 edits from
+`Canisius` with a margin of 1, and a bare `Loyola` is 4 from `Borgia`. Reversing that order moves a
+G8 section into G10.
+
+A near miss (distance ≤ 2, ≥ 6 characters) is reported to the Chair as "Did you mean …?" rather
+than accepted or dropped — this is how Social Studies' `De Brtio` surfaces.
+
+## 4. Format variance across the seven sheets — still accurate
+
+| Sheet | Section-list style | Grade in text? | Honor's col | Status format |
 |---|---|---|---|---|
 | **Filipino** | count + parens: `1 (Ignatius)` | ❌ column only | no | `(Permanent)` |
-| **CLE** | count + newline names: `5 ⏎ Berchmans ⏎ …` | ❌ column only | no | `(Retiree)`, `(FT Permanent)` |
+| **CLE** | count + newline names | ❌ column only | no | `(Retiree)`, `(FT Permanent)` |
 | **Math** | count + newline names | ❌ column only | yes (header) | `(FT Probationary 1)` |
-| **Science** | `3 sections ⏎ Arrowsmith ⏎ …` | ❌ column / ✅ honors `G8 Magis` | yes | `(FT Permanent)` |
-| **MAPEH** | newline names, no count: `Borgia ⏎ Briant ⏎ …` | ❌ column only | yes `(Magis)` | `(Permanent Teacher)` + `(MAPEH)` line |
+| **Science** | `3 sections` + newline names | ✅ honors `G8 Magis` | yes | `(FT Permanent)` |
+| **MAPEH** | newline names, no count | ❌ column only | yes `(Magis)` | `(Permanent Teacher)` + `(MAPEH)` |
 | **Social Studies** | count + names, sometimes **no status line** | ❌ column only | no | often **absent** |
-| **TLE** | **grade-prefixed**: `5 (10Colombiere, 10Faber…)` | ✅ **from text** | no | `(Permanent Teacher)`, `(New Teacher)` |
+| **TLE** | grade-prefixed: `5 (10Colombiere, …)` | ✅ **from text** | no | `(Permanent Teacher)` |
 
-### Structural findings
+How each is handled now:
 
-1. **The section-count marker varies five ways:** `1 (Ignatius)`, `5` alone, `1 section`,
-   `3 sections`, `1 moderating class`, or *no count at all* (MAPEH just lists names). The current
-   regex handles none of these.
-2. **Grade attribution is recoverable in more cases than the code assumes:**
-   - **TLE** glues the grade into the name — `10Colombiere` = G10 Colombiere, `9Rodriguez` = G9
-     Rodriguez. Fully parseable from flat text.
-   - **Science / MAPEH honors** state grade explicitly — `G8 Magis`, `G10 Magis`.
-   - **Filipino / CLE / Math / Science / Social Studies teaching sections** rely purely on column
-     position — this is the real blank spot.
-3. **Class Moderator has its own zoo:** `G7 Class Moderator (Rubio)` (Filipino — grade stated),
-   `Class Moderator Ogilvie` (MAPEH), `1 moderating class` (Math — count only, no section name),
-   or a bare section name in the CM column.
-4. **Status format varies and is sometimes missing.** `(Permanent)`, `(FT Permanent)`,
-   `(Permanent Teacher)`, `(Retiree)`, `(New Teacher)`, `(FT Probationary 1)` — and some Social
-   Studies rows (e.g. Omega, Lomocso) have **no parenthetical at all**, breaking the
-   "name = text before first `(`" logic.
-5. **Other Assignment is free text** interleaved with the trailing number cluster:
-   `Department Chair`, `FDP`, `Sports Club`, `SAO Coordinator`, `Grade Level Leader`, `None`,
-   `Eagle's Eye Club (Honoraria)`, `Faculty Dev. (Thesis Writing)`. Separating it from the
-   `teaching-hrs / service-load / equiv / total / overload` numbers is the messiest parse.
+- **Five different count markers** (`1 (Ignatius)`, `5`, `1 section`, `3 sections`,
+  `1 moderating class`, none) — irrelevant. Counts are dropped; names are recognised against the
+  roster wherever they appear.
+- **Four Class Moderator formats** — matched on `Class Moderator` / `moderating class`, which
+  deliberately excludes club roles like `Sports Club Moderator` and `Punlaan Moderator`.
+- **Missing status parentheticals** — the name is the leading run of lines before the status,
+  section list or numeric cells. It is no longer "text before the first `(`", which used to
+  swallow whole rows on Social Studies.
+- **Other Assignment interleaved with the numeric cluster** — Service Load is the number
+  immediately preceding the assignment text, anchored on the text rather than a column index
+  because the sheets differ in column count (CLE leads with an Honor's column).
 
----
+## 5. Class Moderators come from the roster, not the sheets
 
-## 5. The core blocker — grade attribution
+Surveying the Class Moderator column across all seven sheets:
 
-Section identity is `(grade, name)`, never name alone. Grade has exactly three reliable signals, in
-order of preference:
-
-1. **Grade stated/embedded in the text** — TLE `10Colombiere`, Science `G8 Magis`, Filipino
-   `G7 Class Moderator`. Parse directly; free and unambiguous.
-2. **Column geometry** — a coordinate-aware PDF reader recovers which of the four grade columns a
-   block sat under. The only reliable signal for the five sheets that carry grade purely by column
-   position.
-3. **Chair confirmation** — when neither is available, flag the row and let the Chair set the grade.
-
-A **name → grade lookup cannot serve as the backbone** — see §6.
-
----
-
-## 6. Repeating sections across grade levels
-
-Built from [[JHS Sections Directory]] per-grade tables, plus the explicit `G# Magis` honors tags in
-the Science sheet. **37 of 43 distinct section names (86%) repeat across grades**; 9 span three
-grades. Only 3 are genuinely unique to one grade.
-
-### 6.1 Sections appearing in multiple grades (37)
-
-| Section | Grades |
-|---|---|
-| Anchieta | G8, G9 |
-| Arrowsmith | G7, G8 |
-| Bellarmine | G7, G8 |
-| **Berchmans** | **G8, G9, G10** |
-| Borgia | G7, G8 |
-| Brebeuf | G8, G9 |
-| Briant | G7, G8 |
-| **Campion** | **G7, G8, G9** |
-| **Canisius** | **G8, G9, G10** |
-| **Chabanel** | **G8, G9, G10** |
-| Claver | G7, G8 |
-| **Colombiere** | **G8, G9, G10** |
-| Daniel | G9, G10 |
-| De Britto | G7, G8 |
-| Evans | G8, G9 |
-| **Faber** | **G8, G9, G10** |
-| Garnet | G8, G9 |
-| Goupil | G8, G9 |
-| **Hurtado** | **G8, G9, G10** |
-| Ignatius | G7, G8 |
-| Jerome | G8, G9 |
-| **Jogues** | **G7, G8, G10** |
-| Kostka | G8, G9 |
-| Lewis | G7, G8 |
-| **Magis** (honors) | **G8, G9, G10** |
-| **Mayer** | **G8, G9, G10** |
-| Miki | G7, G8 |
-| Morse | G8, G9 |
-| Ogilvie | G7, G8 |
-| Owen | G8, G9 |
-| Pignatelli | G7, G8 |
-| Pongracz | G7, G8 |
-| Realino | G7, G8 |
-| Regis | G7, G8 |
-| Rodriguez | G8, G9 |
-| **Southwell** | **G8, G9, G10** |
-| Xavier | G7, G8 |
-
-**Bold = spans three grades (9 names).** All others span two.
-
-### 6.2 Sections unique to a single grade — only 3 genuine
-
-The directory yields six "unique" names, but three are spelling-variant artifacts of names that DO
-repeat, so they must not be treated as unique:
-
-| Reported | Grade | Verdict |
+| Sheet | Moderator cell | Recoverable from flat text? |
 |---|---|---|
-| Paul | G7 | ✅ genuinely unique |
-| Rubio | G7 | ✅ genuinely unique |
-| Loyola | G8 | ✅ genuinely unique |
-| De Brito | G7 | ✗ variant of **De Britto** (G7/G8) |
-| Anchietta | G8 | ✗ variant of **Anchieta** (G8/G9) |
-| Colombierre | G9 | ✗ variant of **Colombiere** (G8/G9/G10) |
+| Filipino | `G7 Class Moderator (Rubio)` | ✅ names the section |
+| MAPEH | `G10 Class Moderator / Southwell` | ✅ names the section |
+| Science | `Grade 8 / Magis Class / Moderator` | ⚠️ grade only; resolvable for Magis |
+| TLE | bare `10Canisius`, no keyword | ❌ needs column geometry |
+| Math | `1 moderating class` | ❌ a count; the section is never named |
+| CLE | `0` | ❌ column is empty |
+| Social Studies | blank | ❌ column is empty |
 
-Only **Paul, Rubio, Loyola** are safe for a name→grade lookup — 3 sections school-wide.
+**For four of seven sheets the moderator is simply not in the document.** Marker parsing recovered
+only 8 of 36. TLE is the one case geometry would help with — it puts a bare section name in the
+column — but even a coordinate-aware parser leaves CLE, Math and Social Studies empty.
 
-### 6.3 Why name-lookup fails as a strategy
+The registrar's list names all 36 moderators and their teacher-partners, so `sections` carries
+`moderator_name` and `teacher_partner_name`, and `PlantillaReviewService` assigns the moderator by
+matching an imported teacher against the roster. The sheet's own cell is kept only as a
+cross-check: where it disagrees with the roster, the roster wins and the conflict is reported.
 
-- 86% of names collide across grades; a name like *Colombiere* maps to G8, G9, **and** G10.
-- Inconsistent spellings (`De Britto`/`De Brito`, `Anchieta`/`Anchietta`, `Colombiere`/`Colombierre`)
-  make even exact-match lookup fragile for the same physical section.
-- Net: name-lookup can only confidently resolve 3 sections, so it can at best be a narrow helper
-  ("auto-fill only when the name is school-wide unique, else flag"), never the backbone.
+Name forms differ between the sheets and the roster (`Marycris Asdali` / `Mary Cris Asdali`,
+`Fritzie Dealagdon` / `Frizie B. Dealagdon`, `SCH. JAMES RYAN C. SENERICHES, SJ`), so matching
+compares given names and surname with a one-edit tolerance after dropping honorifics and middle
+initials — never surname alone, which would confuse Cristie R. Delos Reyes (G7 Rubio) with
+Ivy Q. Delos Reyes (G10 Southwell).
 
-### 6.4 Confidence note
+Importing all seven sheets now yields **75 teachers, 242 section assignments and 32 of 36
+moderators**. The four outstanding — Pignatelli, Xavier, Anchieta, Berchmans — are moderated by
+Romanggar, Bernabe, Singson and Jolapong, none of whom appear in any plantilla. They are among the
+twelve people on the registrar's list with no plantilla row, which is further evidence of the
+missing English department noted in [[JHS Scheduling Constraints]] §7.8.
 
-This map is derived from the Sections Directory, which **self-flags CLE and MAPEH grade attribution
-as unreliable**. A handful of two-grade entries could shift. But any correction can only *add*
-collisions, never remove them — so the "names repeat pervasively" conclusion is robust regardless.
+## 6. Known source-data conflicts this surfaces
 
-The strongest collision proof is independent of the directory: the Science sheet's own honor's-class
-column explicitly tags **Magis** as G8, G9, and G10 — one name, three grades, stated in the source.
+Now that extraction works, the sheets' own inconsistencies are visible:
 
----
+- **`Miki` / `Paul`** appear in CLE, MAPEH, Science and Math but are absent from the 2026 roster.
+  Evidence points to Saint Paul Miki having been renamed **G7 Rubio**: the sheets that name Miki
+  never name Rubio and vice versa, and in CLE the G7 sections are fully covered except Rubio, whose
+  slot Miki occupies. **Deliberately not aliased** — the resolver flags it for the registrar.
+  Confirming it is a one-line move from `PENDING_REGISTRAR` into `ALIASES`.
+- **Duplicate Honor's Class rows.** The Science sheet names *two* teachers against G8 Magis
+  (Magasa and Abduraja) and two against G10 Magis (Sienes and Calumpang). There are only three
+  Magis sections. `honors_class_assignments` now carries a `unique(section_id, school_year)`
+  constraint — matching what `class_moderator_assignments` always had — and the importer reports
+  the clash instead of writing both.
 
-## 7. Candidate directions (for the later work-around)
+## 7. Verification
 
-- **A — Flat-text + per-family rules.** Tolerant regex per format family; recover TLE embedded
-  grades and stated honor's grades for free; leave column-only grades for the Chair. Lowest effort,
-  stays with the current parser. Fastest path to "Chair isn't retyping everything."
-- **B — Coordinate-aware parser.** Switch to a positional PDF reader so grade *columns* are recovered
-  for all seven sheets. Highest fidelity, bigger rewrite. Column geometry is the one signal that
-  unifies grade attribution across every sheet.
-- **C — Hybrid.** Coordinate-aware for grade columns + text rules for the messy
-  Other/Service/Moderator cells.
+`tests/Fixtures/` holds all seven sheets. `PdfExtractionServiceTest` asserts per-sheet behaviour
+plus two invariants: no sheet ever yields a section outside the 36, and every extracted Service
+Load is a plausible value. `SectionResolverTest` covers the alias, wrap, prefix-conflict,
+stopword, near-miss and refusal paths.
 
-Leaning **A** for a first pass, **B/C** as a follow-up if column-grade accuracy proves worth it.
+Current extraction: **75 teacher rows across seven sheets, 72 carrying at least one section**, with
+three rows flagged — all three the genuine `Miki`/`Paul` registrar question.
 
-Whatever the approach, the return shape and downstream import do not change — the extractor only has
-to populate the existing staging fields (`sections` as `"G7: Ignatius; G9: Kostka"`, etc.), flagging
-rows whose grade could not be resolved.
+Other fixes made while auditing against the registrar roster:
+
+- A missing employment status no longer discards the row. No Social Studies row states one, so all
+  eleven were previously rejected outright, losing the whole department's load.
+- `Probationary II` (roman numerals, MAPEH) is now understood.
+- A club role wrapped as `Punlaan` / `Moderator` is rejoined before the role lookup; `None` is
+  treated as an empty cell rather than a role name; `TLE Coordinator` keeps its prefix.
+- The signatory block no longer leaks into the last row of a sheet (the honorifics are written
+  inconsistently — `BB.` and `Bb.`).
+- Only a *lowercase* preposition continues a wrapped name: `of Loyola` does, `De Britto` does not.

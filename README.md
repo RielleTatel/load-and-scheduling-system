@@ -104,16 +104,16 @@ Install the dependencies above for your OS, then:
 
 Password `password` for all.
 
-| Email | Role |
-|---|---|
-| `admin@jhs.test` | System Administrator |
-| `chair.fil@jhs.test` | Filipino Chair |
-| `chair.cle@jhs.test` | CLE Chair |
-| `chair.tle@jhs.test` | TLE Chair |
-| `chair.sci@jhs.test` | Science Chair |
-| `chair.math@jhs.test` | Mathematics Chair |
-| `chair.mapeh@jhs.test` | MAPEH Chair |
-| `chair.soc@jhs.test` | Social Studies Chair |
+| Email                  | Role                 |
+| ---------------------- | -------------------- |
+| `admin@jhs.test`       | System Administrator |
+| `chair.fil@jhs.test`   | Filipino Chair       |
+| `chair.cle@jhs.test`   | CLE Chair            |
+| `chair.tle@jhs.test`   | TLE Chair            |
+| `chair.sci@jhs.test`   | Science Chair        |
+| `chair.math@jhs.test`  | Mathematics Chair    |
+| `chair.mapeh@jhs.test` | MAPEH Chair          |
+| `chair.soc@jhs.test`   | Social Studies Chair |
 
 ## What's here
 
