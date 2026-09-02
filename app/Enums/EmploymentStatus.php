@@ -31,8 +31,11 @@ enum EmploymentStatus: string
         if (str_contains($label, 'new teacher')) {
             return self::Probationary1;
         }
-        if (preg_match('/probationary\s*([1-3])/', $label, $m)) {
-            return self::from('probationary_' . $m[1]);
+        // Sheets write the level as a digit or a roman numeral ("Probationary II").
+        if (preg_match('/probationary\s*(iii|ii|i|[1-3])\b/', $label, $m)) {
+            $level = ['i' => 1, 'ii' => 2, 'iii' => 3][$m[1]] ?? (int) $m[1];
+
+            return self::from('probationary_' . $level);
         }
         if (str_contains($label, 'permanent')) {
             return self::Permanent;

@@ -12,7 +12,34 @@ class Teacher extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['full_name', 'employment_status', 'department_id'];
+    protected $fillable = ['full_name', 'normalized_name', 'employment_status', 'department_id', 'source'];
+
+    protected static function booted(): void
+    {
+        static::saving(function (self $teacher) {
+            $teacher->normalized_name = self::normalize($teacher->full_name);
+        });
+    }
+
+    /**
+     * A stable key for a written name. The sheets and the registrar disagree on
+     * honorifics, middle initials and spacing for the same person, so identity
+     * cannot be the raw string.
+     */
+    public static function normalize(?string $name): string
+    {
+        $name = mb_strtolower(trim((string) $name));
+        $name = str_replace(['’', '‘'], "'", $name);
+        $name = preg_replace('/,?\s*\b(sj|jr|sr|iii|ii)\b\.?/u', ' ', $name);
+        $name = preg_replace('/^\s*(?:sch|br|fr|rev|ms|mr|mrs|bb|gng|dr)\.?\s+/u', ' ', $name);
+        $name = preg_replace('/[^\p{L}\s-]/u', ' ', $name);
+        $tokens = array_values(array_filter(
+            preg_split('/\s+/', trim($name)) ?: [],
+            fn ($t) => mb_strlen($t) > 1,
+        ));
+
+        return implode(' ', $tokens);
+    }
 
     protected function casts(): array
     {

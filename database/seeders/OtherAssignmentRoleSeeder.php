@@ -38,6 +38,7 @@ class OtherAssignmentRoleSeeder extends Seeder
             'Animo Aguila Moderator', 'Danzar Atenista Moderator', 'Artique Circle Moderator',
             'Musica de Aguilas Club Moderator', 'Youth for Christ Moderator', 'RCY Moderator',
             'JES Moderator', 'LLA Moderator', 'ITS Moderator', 'Punlaan Moderator',
+            'Punlaan Asst. Moderator', 'LLA Asst. Moderator', 'Youth for Christ Asst. Moderator',
         ];
 
         foreach ($honorarium as $name) {

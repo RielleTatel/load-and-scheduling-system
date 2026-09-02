@@ -26,9 +26,14 @@ class PlantillaReviewController extends Controller
 
         $message = "Imported {$result['imported']} teacher(s).";
         if (! empty($result['skipped'])) {
+            // These are per-entry problems (an unmatched role, an unknown
+            // section) - the teacher rows themselves still imported, so don't
+            // report them as skipped rows.
+            $count = count($result['skipped']);
+
             return redirect()->route('chair.teachers.index')
                 ->with('status', $message)
-                ->with('warning', count($result['skipped']) . ' row(s) were skipped: ' . implode(' ', $result['skipped']));
+                ->with('warning', "{$count} item(s) need attention: " . implode(' ', $result['skipped']));
         }
 
         return redirect()->route('chair.teachers.index')->with('status', $message);

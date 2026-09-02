@@ -7,6 +7,14 @@ use PHPUnit\Framework\TestCase;
 
 class EmploymentStatusTest extends TestCase
 {
+    public function test_roman_numeral_probationary_levels_are_understood(): void
+    {
+        // MAPEH writes "(Probationary II)".
+        $this->assertSame(EmploymentStatus::Probationary1, EmploymentStatus::fromLabel('Probationary I'));
+        $this->assertSame(EmploymentStatus::Probationary2, EmploymentStatus::fromLabel('Probationary II'));
+        $this->assertSame(EmploymentStatus::Probationary3, EmploymentStatus::fromLabel('FT Probationary III'));
+    }
+
     public function test_from_label_canonicalizes_source_variants(): void
     {
         $this->assertSame(EmploymentStatus::Permanent, EmploymentStatus::fromLabel('FT Permanent'));
