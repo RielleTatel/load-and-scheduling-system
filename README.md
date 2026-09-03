@@ -129,3 +129,5 @@ php artisan test
 ```
 
 Runs on in-memory SQLite (no MySQL needed for the suite). Covers RBAC boundaries, the submission state machine, and the full extraction-to-import pipeline against the real Filipino plantilla fixture.
+
+Class moderator hours are seeded from the registrar's plantilla sheets, not assumed.
