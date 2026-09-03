@@ -26,6 +26,11 @@ class PlantillaSubmission extends Model
         return $this->belongsTo(Department::class);
     }
 
+    public function returnedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'returned_by_user_id');
+    }
+
     /**
      * The submission row for a department in the active school year,
      * created in Draft state if it doesn't exist yet.

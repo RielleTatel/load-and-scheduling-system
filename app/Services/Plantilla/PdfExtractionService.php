@@ -24,7 +24,7 @@ class PdfExtractionService
     public function __construct(private SectionResolver $resolver) {}
 
     /**
-     * @return array<int, array{teacher_name:?string,employment_status:?string,sections:?string,cm:?string,hc:?string,service_load:?string,other_assignment:?string,flagged:bool,flags:array<string,string>}>
+     * @return array<int, array{teacher_name:?string,employment_status:?string,sections:?string,cm:?string,hc:?string,service_load:?string,other_assignment:?string,stated_totals:?string,flagged:bool,flags:array<string,string>}>
      */
     public function extract(string $absolutePdfPath): array
     {
@@ -192,6 +192,7 @@ class PdfExtractionService
             'hc' => $this->format($buckets['hc']),
             'service_load' => $serviceLoad,
             'other_assignment' => $otherAssignment,
+            'stated_totals' => $this->statedTotals($tail),
             'flagged' => $name === null || $flags !== [],
             'flags' => $flags,
         ];
@@ -366,6 +367,30 @@ class PdfExtractionService
     }
 
     /** The numeric cells sharing a line with a section name. */
+    /**
+     * The registrar's stated totals (Total Teaching Hours, Service Load,
+     * Total Number of Hours, Overload, ...), captured verbatim in reading
+     * order. The column layout varies by sheet - some print an Equivalent
+     * Hours figure, some don't - so this deliberately does not split the
+     * cluster into named fields; it is a reference string for the Chair to
+     * read against the paper sheet, gap 1 of the extraction checkpoint.
+     *
+     * @param  array<int, string>  $tail
+     */
+    private function statedTotals(array $tail): ?string
+    {
+        $numbers = [];
+        foreach ($tail as $line) {
+            foreach (preg_split('/\s+/', trim($line)) ?: [] as $token) {
+                if (preg_match('/^-$|^\d+(?:\.\d+)?$/', $token)) {
+                    $numbers[] = $token;
+                }
+            }
+        }
+
+        return $numbers === [] ? null : implode(' ', $numbers);
+    }
+
     private function numericResidue(string $line): ?string
     {
         $numbers = array_values(array_filter(

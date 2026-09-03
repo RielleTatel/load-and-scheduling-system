@@ -67,6 +67,57 @@ class PlantillaReviewTest extends TestCase
         $this->assertSame(ExtractionRowStatus::Extracted, $row->row_status);
     }
 
+    public function test_extraction_flags_are_rendered_on_the_review_screen(): void
+    {
+        // The extractor writes flags into row_json (unresolved section, roster
+        // conflict, ...); the Chair needs to see why a row was flagged, not
+        // just that it was.
+        $this->seed();
+        $chair = User::where('email', 'chair.fil@jhs.test')->first();
+        $this->makeUploadFor($chair, [[
+            'teacher_name' => 'Leah Angelic C. Bilbar', 'flagged' => true,
+            'flags' => ['cm' => 'The sheet records a moderating class but never names the section.'],
+        ]]);
+
+        $this->actingAs($chair)->get(route('chair.plantilla.review'))
+            ->assertOk()
+            ->assertSee('The sheet records a moderating class but never names the section.');
+    }
+
+    public function test_stated_totals_is_shown_as_a_reference_string(): void
+    {
+        $this->seed();
+        $chair = User::where('email', 'chair.fil@jhs.test')->first();
+        $this->makeUploadFor($chair, [[
+            'teacher_name' => 'Leah Angelic C. Bilbar', 'flagged' => false,
+            'stated_totals' => '20 3 3 23 0.67',
+        ]]);
+
+        $this->actingAs($chair)->get(route('chair.plantilla.review'))
+            ->assertOk()->assertSee('20 3 3 23 0.67');
+    }
+
+    public function test_stated_totals_survives_a_row_edit(): void
+    {
+        // storeRow/updateRow rebuild row_json from the blank template each
+        // save. The review form resubmits stated_totals as a hidden field so
+        // the extractor's reference string isn't wiped by an unrelated edit.
+        $this->seed();
+        $chair = User::where('email', 'chair.fil@jhs.test')->first();
+        $upload = $this->makeUploadFor($chair, [[
+            'teacher_name' => 'Leah Angelic C. Bilbar', 'flagged' => true,
+            'stated_totals' => '20 3 3 23 0.67',
+        ]]);
+        $row = $upload->rows()->first();
+
+        $this->actingAs($chair)->patch(route('chair.plantilla.rows.update', $row), [
+            'teacher_name' => 'Leah Angelic C. Bilbar', 'sections' => 'G7: Ignatius',
+            'stated_totals' => '20 3 3 23 0.67',
+        ])->assertRedirect();
+
+        $this->assertSame('20 3 3 23 0.67', $row->fresh()->row_json['stated_totals']);
+    }
+
     public function test_other_chair_cannot_touch_row(): void
     {
         $this->seed();

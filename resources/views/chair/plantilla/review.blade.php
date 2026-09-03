@@ -16,8 +16,10 @@
     @php
         $statuses = \App\Enums\EmploymentStatus::cases();
         $fieldRow = fn ($row) => is_array($row->row_json) ? $row->row_json : [];
-        // "Needs attention" = hard-flagged by extraction, or still missing sections.
+        // "Needs attention" = the extractor's own flags (unresolved section,
+        // roster/sheet conflict, ...), or still missing sections.
         $needsAttention = fn ($r) => $r->row_status === \App\Enums\ExtractionRowStatus::Flagged
+            || ! empty(($fieldRow($r))['flags'] ?? [])
             || trim((string) (($fieldRow($r))['sections'] ?? '')) === '';
         $flaggedCount = $rows->filter($needsAttention)->count();
         $readyCount = $rows->count() - $flaggedCount;
@@ -46,7 +48,8 @@
                 </div>
                 <p class="text-[12.5px] text-slate-brand mt-2">
                     Check each row against your paper plantilla — row numbers match the sheet.
-                    Grade/section columns don't survive PDF extraction, so fill those in as
+                    Sections are matched against the section roster automatically; a row is
+                    flagged when a name can't be resolved. Enter corrections as
                     <span class="font-data">G7: Ignatius, Xavier; G9: Kostka</span>.
                 </p>
             </div>
@@ -57,8 +60,10 @@
         @forelse ($rows as $row)
             @php
                 $data = $fieldRow($row);
-                $flagged = $row->row_status === \App\Enums\ExtractionRowStatus::Flagged;
+                $rowFlags = $data['flags'] ?? [];
+                $flagged = $row->row_status === \App\Enums\ExtractionRowStatus::Flagged || ! empty($rowFlags);
                 $sections = trim((string) ($data['sections'] ?? ''));
+                $flagLabels = ['sections' => 'Sections', 'cm' => 'Class moderator', 'hc' => "Honor's class"];
             @endphp
             <details class="ledger-row @if ($flagged) ledger-row-flagged @endif" @if ($flagged) open @endif>
                 <summary class="ledger-summary">
@@ -92,8 +97,27 @@
                 </summary>
 
                 <div class="ledger-body">
+                    @if (! empty($rowFlags))
+                        <div class="mb-4 flex flex-col gap-1.5">
+                            @foreach ($rowFlags as $field => $message)
+                                <p class="text-[13px] text-[#8a6200] bg-[#fdf6e3] border border-[#f0e0a8] rounded px-3 py-2">
+                                    <span class="font-semibold">{{ $flagLabels[$field] ?? ucfirst($field) }}:</span>
+                                    {{ $message }}
+                                </p>
+                            @endforeach
+                        </div>
+                    @endif
+
                     <form method="POST" action="{{ route('chair.plantilla.rows.update', $row) }}" class="flex flex-col gap-4">
                         @csrf @method('PATCH')
+                        <input type="hidden" name="stated_totals" value="{{ $data['stated_totals'] ?? '' }}">
+
+                        @if (trim((string) ($data['stated_totals'] ?? '')) !== '')
+                            <p class="text-[12.5px] text-slate-brand">
+                                <span class="font-semibold">Sheet states:</span>
+                                <span class="font-data">{{ $data['stated_totals'] }}</span>
+                            </p>
+                        @endif
 
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div class="sm:col-span-2">

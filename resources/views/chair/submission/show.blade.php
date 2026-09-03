@@ -13,6 +13,15 @@
             </p>
         </div>
     @else
+        @if ($submission->status === \App\Enums\SubmissionStatus::Returned)
+            <div class="card p-6 mb-5 border-l-4 border-amber-brand bg-[#fdf6e3]">
+                <p class="font-bold text-[13px] uppercase tracking-[0.06em] text-[#8a6200] mb-1">
+                    Returned{{ $submission->returnedBy ? ' by ' . $submission->returnedBy->name : '' }}
+                </p>
+                <p class="text-ink text-sm">{{ $submission->returned_comment ?: 'No comment was left.' }}</p>
+            </div>
+        @endif
+
         <p class="text-slate-brand text-sm mb-5 max-w-2xl">
             Review the load summary below. Submitting hands your department's data to the Academic Coordinator and locks editing until it's returned.
         </p>

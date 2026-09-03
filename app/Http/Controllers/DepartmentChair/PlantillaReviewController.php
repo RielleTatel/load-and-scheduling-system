@@ -114,7 +114,7 @@ class PlantillaReviewController extends Controller
         return [
             'teacher_name' => null, 'employment_status' => null, 'sections' => null,
             'cm' => null, 'hc' => null, 'service_load' => null, 'other_assignment' => null,
-            'flagged' => false,
+            'stated_totals' => null, 'flagged' => false,
         ];
     }
 }

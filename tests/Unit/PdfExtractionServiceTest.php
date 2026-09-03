@@ -302,6 +302,30 @@ class PdfExtractionServiceTest extends TestCase
         return $out;
     }
 
+    public function test_extracts_the_stated_totals_cluster_verbatim(): void
+    {
+        // Delos Reyes (filipino): sections 4x4=16, CM +4 => sheet states
+        // "20 3   3 23 0.67" across Total Teaching, Service, Non-teaching,
+        // Total, Overload. Nothing here is split into named fields - the
+        // trailing layout isn't consistent enough across sheets for that -
+        // it's captured as printed for the Chair to read against the paper.
+        $row = $this->rowFor($this->extract('filipino'), 'Delos Reyes');
+
+        $this->assertArrayHasKey('stated_totals', $row);
+        $this->assertStringContainsString('23', (string) $row['stated_totals']);
+        $this->assertStringContainsString('0.67', (string) $row['stated_totals']);
+    }
+
+    public function test_stated_totals_captures_the_math_overload_figure(): void
+    {
+        // Napisa Hatab (mathematics): 3 sections x5=15, CM +4 => stated 19,
+        // total 22, overload 0.33.
+        $row = $this->rowFor($this->extract('mathematics'), 'Napisa');
+
+        $this->assertStringContainsString('22', (string) $row['stated_totals']);
+        $this->assertStringContainsString('0.33', (string) $row['stated_totals']);
+    }
+
     public function test_textless_pdf_throws(): void
     {
         $path = tempnam(sys_get_temp_dir(), 'pdf');

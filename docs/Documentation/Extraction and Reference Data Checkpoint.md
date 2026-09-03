@@ -34,15 +34,27 @@ read perfectly but no longer under its column header. The spelling variants
 (`De Brito`, `Anchietta`, `Colombierre`) are human typos in the source, not
 extraction noise.
 
-**The deeper issue was architectural.** The plantilla had become the sole source
-for data it cannot carry — a section's grade, and who moderates it. SRS §6.2 had
-already recommended the inverse: PDF upload as a convenience import *over*
-reference data, not the only entry path. There was no admin screen for sections or
-teachers, so that reference data had nowhere to live.
+**The deeper issue was architectural, and the SRS had already called it.** The
+plantilla had become the sole source for data it cannot carry — a section's grade,
+and who moderates it. SRS §6.2 doesn't just permit an admin-owned reference layer,
+it recommends it directly: *"a structured web form... should be the primary
+encoding path, with PDF upload as a convenience import that pre-fills the form for
+review rather than the sole entry method."* That was written before any of this
+work started. There was no admin screen for sections or teachers, so that reference
+data had nowhere to live — this milestone is that recommendation being built, not
+a side-effect discovered while fixing the extraction blocker. Admin-owned
+sections/teachers is the foundation; PDF extraction is the convenience layer
+reconciling *against* it, per design, not the other way around.
 
 ## 2. What now works
 
-### Reference data (registrar-sourced, admin-owned)
+### Reference data (registrar-sourced, admin-owned) — core, not incidental
+
+Per SRS §6.2, this is the primary encoding path the spec called for, not a
+byproduct of unblocking extraction. Sections and teachers change every school
+year — new rosters, reassigned moderators, sheets that arrive late or not at all —
+so admin ownership of this data, independent of any single PDF, is what makes the
+system tolerate that churn instead of re-breaking on it annually.
 
 - **36 canonical sections** with grade, room, official name, Magis flag, moderator
   and teacher-partner. Replaces 85 seeded rows, of which 49 were the same section
@@ -107,7 +119,11 @@ Unmatched Other-Assignment roles fell from 27 to 6.
 
 ## 3. The missing English plantilla
 
-Still outstanding. The design already accommodates it and **no rework is expected**:
+Still outstanding — and this is a data-completeness state, not a design or code
+issue. A sheet arriving late, or a roster changing next year, is exactly the kind
+of churn the admin-owned reference layer (§2) exists to absorb: it is expected
+behavior, recurring by nature, not a one-time defect to close out. The design
+already accommodates it and **no rework is expected**:
 
 - The four sections without a moderator — G8 Pignatelli, G8 Xavier, G9 Anchieta,
   G10 Berchmans — are moderated by Romanggar, Bernabe, Singson and Jolapong, all

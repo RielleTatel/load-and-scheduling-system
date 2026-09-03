@@ -21,11 +21,14 @@ class UpdateExtractionRowRequest extends FormRequest
             'hc' => ['nullable', 'string', 'max:500'],
             'service_load' => ['nullable', 'string', 'max:500'],
             'other_assignment' => ['nullable', 'string', 'max:500'],
+            'stated_totals' => ['nullable', 'string', 'max:500'],
         ];
     }
 
     /**
-     * The seven staging fields as a plain array, with missing keys as null.
+     * The staging fields as a plain array, with missing keys as null.
+     * stated_totals is the extractor's reference string, resubmitted by a
+     * hidden field on the review form - not an editable input.
      */
     public function rowData(): array
     {
@@ -37,6 +40,7 @@ class UpdateExtractionRowRequest extends FormRequest
             'hc' => $this->input('hc'),
             'service_load' => $this->input('service_load'),
             'other_assignment' => $this->input('other_assignment'),
+            'stated_totals' => $this->input('stated_totals'),
         ];
     }
 }

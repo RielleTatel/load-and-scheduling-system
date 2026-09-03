@@ -27,7 +27,7 @@ class SubmissionController extends Controller
             ]);
 
         return view('chair.submission.show', [
-            'submission' => PlantillaSubmission::currentFor($department->id),
+            'submission' => PlantillaSubmission::currentFor($department->id)->load('returnedBy'),
             'teachers' => $teachers,
         ]);
     }
