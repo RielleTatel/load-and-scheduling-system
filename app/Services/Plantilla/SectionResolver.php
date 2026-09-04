@@ -3,6 +3,7 @@
 namespace App\Services\Plantilla;
 
 use App\Models\Section;
+use App\Models\SystemConstant;
 use Illuminate\Support\Collection;
 
 /**
@@ -155,7 +156,10 @@ class SectionResolver
         if ($this->sections !== null) {
             return;
         }
-        $this->sections = Section::all();
+        // Section names are unique within a year, not across years: the same
+        // name recurs every SY. Indexing every year would let a later year's
+        // row win the lookup and attach load to the wrong section.
+        $this->sections = Section::where('school_year', SystemConstant::get('current_school_year'))->get();
         foreach ($this->sections as $section) {
             $this->index[$this->normalize($section->name)] = $section;
             if ($section->full_name) {

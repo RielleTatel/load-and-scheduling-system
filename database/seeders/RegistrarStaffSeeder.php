@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Section;
+use App\Models\SystemConstant;
 use App\Models\Teacher;
 use Illuminate\Database\Seeder;
 
@@ -24,7 +25,7 @@ class RegistrarStaffSeeder extends Seeder
      */
     public function run(): void
     {
-        $names = Section::query()
+        $names = Section::where('school_year', SystemConstant::get('current_school_year', '2026-2027'))
             ->get(['moderator_name', 'teacher_partner_name'])
             ->flatMap(fn (Section $s) => [$s->moderator_name, $s->teacher_partner_name])
             ->filter()

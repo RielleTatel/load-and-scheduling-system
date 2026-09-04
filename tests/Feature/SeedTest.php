@@ -24,7 +24,10 @@ class SeedTest extends TestCase
         // of that department's data until its plantilla arrives.
         $this->assertSame(8, Department::count());
         $this->assertSame(9, User::count()); // 1 admin + 8 chairs
-        $this->assertSame(36, Section::count()); // 9 per grade, per the registrar's 2026 moderator list - none are English's yet
+        // 9 per grade, per the registrar's 2026 moderator list - none are English's yet.
+        // Scoped: sections are per school year, so a bare count would drift once a
+        // second year's roster is imported.
+        $this->assertSame(36, Section::where('school_year', SystemConstant::get('current_school_year'))->count());
 
         $this->assertTrue(Department::where('code', 'SCI')->first()->has_honors_class);
         $this->assertSame(5, Department::where('code', 'MATH')->first()->hours_per_section);

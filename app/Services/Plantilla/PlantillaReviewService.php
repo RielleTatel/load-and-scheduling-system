@@ -173,7 +173,7 @@ class PlantillaReviewService
      */
     private function importModerator(Teacher $teacher, string $schoolYear, ?string $cm, string $name): array
     {
-        $rostered = Section::whereNotNull('moderator_name')->get()
+        $rostered = Section::where('school_year', $schoolYear)->whereNotNull('moderator_name')->get()
             ->first(fn (Section $s) => $this->sameTeacher($s->moderator_name, $name));
 
         if ($rostered) {

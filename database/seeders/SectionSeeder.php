@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Section;
+use App\Models\SystemConstant;
 use Illuminate\Database\Seeder;
 
 class SectionSeeder extends Seeder
@@ -72,12 +73,13 @@ class SectionSeeder extends Seeder
 
     public function run(): void
     {
+        $schoolYear = SystemConstant::get('current_school_year', '2026-2027');
         $keep = [];
 
         foreach ($this->sections as $grade => $rows) {
             foreach ($rows as [$name, $fullName, $room, $isMagis, $moderator, $partner]) {
                 $keep[] = Section::updateOrCreate(
-                    ['grade_level' => $grade, 'name' => $name],
+                    ['school_year' => $schoolYear, 'grade_level' => $grade, 'name' => $name],
                     [
                         'full_name' => $fullName, 'room' => $room, 'is_magis' => $isMagis,
                         'moderator_name' => $moderator, 'teacher_partner_name' => $partner,
@@ -86,7 +88,7 @@ class SectionSeeder extends Seeder
             }
         }
 
-        $this->pruneStaleSections($keep);
+        $this->pruneStaleSections($keep, $schoolYear);
     }
 
     /**
@@ -98,11 +100,14 @@ class SectionSeeder extends Seeder
      * reported: dropping it would take a teacher's assignment with it, which is
      * the Chair's call, not the seeder's.
      *
+     * Scoped to the seeded year: other school years are their own rosters, not
+     * stale rows, and deleting them would take their history with them.
+     *
      * @param  array<int, int>  $keep
      */
-    private function pruneStaleSections(array $keep): void
+    private function pruneStaleSections(array $keep, string $schoolYear): void
     {
-        $stale = Section::whereNotIn('id', $keep)->get();
+        $stale = Section::where('school_year', $schoolYear)->whereNotIn('id', $keep)->get();
 
         foreach ($stale as $section) {
             $inUse = $section->teacherAssignments()->exists()
