@@ -63,10 +63,11 @@ class RosterExtractionServiceTest extends TestCase
         $this->assertSame('Hazel G. Sumicad', $this->rowFor($this->extract(), 'Regis')['teacher_partner_name']);
     }
 
-    public function test_strips_honorifics_and_the_sj_suffix(): void
+    public function test_strips_the_honorific_but_keeps_the_sj_suffix(): void
     {
-        // "Br. James Ryan C. Seneriches, SJ"
-        $this->assertSame('James Ryan C. Seneriches', $this->rowFor($this->extract(), 'Colombiere')['moderator_name']);
+        // "Br. James Ryan C. Seneriches, SJ" — the order suffix is part of the
+        // name and the verified roster stores it; only the honorific goes.
+        $this->assertSame('James Ryan C. Seneriches, SJ', $this->rowFor($this->extract(), 'Colombiere')['moderator_name']);
     }
 
     public function test_rejoins_a_name_wrapped_across_lines(): void

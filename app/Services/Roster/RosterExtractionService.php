@@ -95,7 +95,11 @@ class RosterExtractionService
             || (bool) preg_match('/^grade level leader/i', $line)
             || (bool) preg_match('/^prepared by/i', $line)
             || (bool) preg_match('/^(?:ateneo|junior high|accredited|academic year|list of class)/i', $line)
-            || preg_match('/^' . self::HONORIFICS . '\s+[A-ZÑ\s.]+$/u', $line) === 1;
+            // The signatory, printed in caps after an honorific. Hyphens and
+            // apostrophes occur in real surnames ("SUPILANAS-SEÑO"); leaving
+            // them out let the signature line fall through into the last
+            // section's buffer, which pushed its room off the end of the row.
+            || preg_match('/^' . self::HONORIFICS . '\s+[A-ZÑ][A-ZÑ\s.\'\-]+$/u', $line) === 1;
     }
 
     private function isSectionStart(string $line): bool
@@ -164,12 +168,17 @@ class RosterExtractionService
         ]];
     }
 
-    /** Strip the honorific, the ", SJ" suffix and a trailing "(GLL)" marker. */
+    /**
+     * Strip the leading honorific and a trailing "(GLL)" marker.
+     *
+     * A ", SJ" suffix is kept: it is part of how the person is named, and the
+     * verified roster stores it ("James Ryan C. Seneriches, SJ"). Teacher::
+     * normalize() already drops it when matching, so keeping it costs nothing.
+     */
     private function person(string $raw): ?string
     {
         $name = preg_replace('/^' . self::HONORIFICS . '\s+/u', '', trim($raw));
         $name = preg_replace('/\(\s*GLL\s*\)/i', ' ', $name);
-        $name = preg_replace('/,?\s*\bSJ\b\.?/u', ' ', $name);
         $name = trim(preg_replace('/\s+/u', ' ', $name));
 
         return $name === '' ? null : $name;
