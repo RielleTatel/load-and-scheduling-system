@@ -17,6 +17,7 @@
             'Reference data' => [
                 ['label' => 'Section roster', 'route' => 'admin.sections.index'],
                 ['label' => 'Teacher directory', 'route' => 'admin.teachers.index'],
+                ['label' => 'Import roster', 'route' => 'admin.roster.create'],
             ],
         ]
         : [
