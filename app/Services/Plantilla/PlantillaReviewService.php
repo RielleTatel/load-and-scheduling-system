@@ -179,7 +179,7 @@ class PlantillaReviewService
         if ($rostered) {
             ClassModeratorAssignment::updateOrCreate(
                 ['section_id' => $rostered->id, 'school_year' => $schoolYear],
-                ['teacher_id' => $teacher->id, 'hours' => SystemConstant::get('class_moderator_hours', 3)],
+                ['teacher_id' => $teacher->id, 'hours' => SystemConstant::get('class_moderator_hours', 4)],
             );
         }
 
@@ -202,7 +202,7 @@ class PlantillaReviewService
         if (! $rostered) {
             ClassModeratorAssignment::updateOrCreate(
                 ['section_id' => $resolution->section->id, 'school_year' => $schoolYear],
-                ['teacher_id' => $teacher->id, 'hours' => SystemConstant::get('class_moderator_hours', 3)],
+                ['teacher_id' => $teacher->id, 'hours' => SystemConstant::get('class_moderator_hours', 4)],
             );
         }
 

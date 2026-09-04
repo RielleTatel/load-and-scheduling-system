@@ -18,12 +18,17 @@ class SeedTest extends TestCase
     {
         $this->seed();
 
-        $this->assertSame(7, Department::count());
-        $this->assertSame(8, User::count()); // 1 admin + 7 chairs
-        $this->assertSame(36, Section::count()); // 9 per grade, per the registrar's 2026 moderator list
+        // English is the 8th department: no plantilla or section list yet
+        // (JHS Scheduling Constraints §7.8), hours_per_section=5 inferred from
+        // its 5x/cycle load matching Math/Science - unconfirmed like the rest
+        // of that department's data until its plantilla arrives.
+        $this->assertSame(8, Department::count());
+        $this->assertSame(9, User::count()); // 1 admin + 8 chairs
+        $this->assertSame(36, Section::count()); // 9 per grade, per the registrar's 2026 moderator list - none are English's yet
 
         $this->assertTrue(Department::where('code', 'SCI')->first()->has_honors_class);
         $this->assertSame(5, Department::where('code', 'MATH')->first()->hours_per_section);
+        $this->assertSame(5, Department::where('code', 'ENG')->first()->hours_per_section);
         $this->assertSame('2026-2027', SystemConstant::get('current_school_year'));
 
         $this->assertEquals(15, OtherAssignmentRole::where('name', 'Department Chair')->first()->equivalent_hours);

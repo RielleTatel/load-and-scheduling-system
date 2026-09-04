@@ -57,7 +57,7 @@ class SectionAssignmentService
 
         return ClassModeratorAssignment::updateOrCreate(
             ['section_id' => $section->id, 'school_year' => $schoolYear],
-            ['teacher_id' => $teacher->id, 'hours' => SystemConstant::get('class_moderator_hours', 3)],
+            ['teacher_id' => $teacher->id, 'hours' => SystemConstant::get('class_moderator_hours', 4)],
         );
     }
 

@@ -25,7 +25,7 @@ class BackfillClassModeratorHours extends Command
 
     public function handle(AuditLogService $audit): int
     {
-        $correctHours = (float) SystemConstant::get('class_moderator_hours', 3);
+        $correctHours = (float) SystemConstant::get('class_moderator_hours', 4);
 
         $stale = ClassModeratorAssignment::where('hours', '!=', $correctHours)->get();
 
