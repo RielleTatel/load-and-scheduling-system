@@ -62,26 +62,41 @@ anchors above rather than on reading order.
 **Noise to strip:** honorifics, the `, SJ` suffix, and a trailing `(GLL)` marker on
 teacher-partner names (`Mrs. Hazel G. Sumicad (GLL)`).
 
-## 2. The one field that cannot be derived
+## 2. Short names
 
-Short names are **editorial, not mechanical**. From the current verified data:
+**Corrected 2026-09-04.** An earlier draft of this section claimed short names were
+"editorial, not mechanical" and that "no rule produces all five". That was wrong,
+and it was drawn from the roster document alone. Checking how the seven plantillas
+actually write these sections settles it:
 
-| Registrar writes | System stores | Rule |
+| Section | How the sheets write it | Particle |
 |---|---|---|
-| `Saint John de Britto` | `De Britto` | keeps `de` |
-| `Saint Jose de Anchieta` | `Anchieta` | drops `de` |
-| `Saint John de Brebeuf` | `Brebeuf` | drops `de` |
-| `Saint Ignatius of Loyola` | `Ignatius of Loyola` | keeps everything |
-| `Saint Claude la Colombiere` | `Colombiere` | drops `la` |
+| De Britto | `De Britto` (FIL, CLE, MATH) · `De Brito` (TLE, SCI, MAPEH) | **kept** — no sheet writes bare `Britto` |
+| Anchieta | `Anchieta` (six sheets) · `Anchietta` (SCI) | dropped |
+| Brebeuf | `Brebeuf` (all sheets) | dropped |
+| Colombiere | `Colombiere` · `Colombierre` (FIL) | dropped |
+| Ignatius of Loyola | `Ignatius` · `Loyola` · `Ignatius of Loyola` · `8Loyola` | inconsistent |
 
-No rule produces all five; a human made judgment calls. **The extractor therefore
-proposes a short name and never commits one unreviewed.** This mirrors FR-5's
-mandatory Chair review for plantillas, applied to the Admin.
+The convention is **"drop the particle, use the surname"** — the last token — and it
+is correct for **34 of the 36 sections**. Two are genuine exceptions, both settled by
+usage rather than by the roster's text: `De Britto` treats the particle as part of
+the surname, and `Ignatius of Loyola` (the G8 Magis class) keeps the whole phrase so
+that `ignatius` and `loyola` can both alias onto it.
 
-Proposal heuristic: strip `Saint`/`Blessed`, take the final token; if the remainder
-contains a lowercase connective (`de`, `la`, `of`), flag the row for explicit
-attention rather than guessing. On re-import, fuzzy-match the full name against the
-current year's sections and reuse a known short name when it matches.
+The short name is not a matter of taste at all: **it is whatever the plantillas
+write**, because `SectionResolver` matches sheet text against it. The alias table's
+*values* are therefore the authority — a section named anything else would leave
+`'de brito' => 'De Britto'` and `'loyola' => 'Ignatius of Loyola'` pointing at
+nothing, and every sheet using those forms would stop resolving.
+
+Proposal rule: prefer the longest known canonical name that closes the registrar's
+full name (from `SectionResolver::canonicalNames()` plus sections already on file);
+otherwise take the last token. Flag only when a particle is present *and* nothing
+known corroborates dropping it — so a genuinely new section is still reviewed.
+
+Against an empty database this yields **zero incorrect proposals** for the 2026
+roster, with one conservative flag (`Brebeuf`, proposed correctly). Nothing is ever
+committed unreviewed regardless, mirroring FR-5's mandatory review.
 
 ## 3. The blocking architectural problem
 

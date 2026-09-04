@@ -2,7 +2,9 @@
 
 namespace App\Services\Roster;
 
+use App\Models\Section;
 use App\Services\Plantilla\ExtractionFailedException;
+use App\Services\Plantilla\SectionResolver;
 use Smalot\PdfParser\Parser;
 use Throwable;
 
@@ -26,6 +28,12 @@ use Throwable;
 class RosterExtractionService
 {
     private const HONORIFICS = '(?:Ms|Mr|Mrs|Bb|Gng|Br|Sch|Fr|Rev|Dr)\.?';
+
+    /** Nobiliary particles the plantillas drop when naming a section. */
+    private const PARTICLES = ['de', 'la', 'of', 'del', 'du', 'van', 'von'];
+
+    /** @var array<int, string>|null */
+    private ?array $knownNames = null;
 
     /**
      * @return array<int, array{grade_level:string, full_name:string, name:?string, room:?string, is_magis:bool, moderator_name:?string, teacher_partner_name:?string, flagged:bool, flags:array<string,string>}>
@@ -185,9 +193,24 @@ class RosterExtractionService
     }
 
     /**
-     * Propose a short name, and say so when the call is not ours to make.
-     * "Saint John de Britto" is stored as "De Britto" but "Saint Jose de
-     * Anchieta" as "Anchieta" — a connective means a human decides.
+     * Propose the short name the plantillas will be matched against.
+     *
+     * The sheets' convention is "drop the particle, use the surname": all seven
+     * write Anchieta, Brebeuf and Colombiere bare, never "de Anchieta". That
+     * rule — the last token — is correct for 34 of the 36 sections.
+     *
+     * Two are genuine exceptions, and both are settled by usage rather than by
+     * the roster's own text:
+     *   - "De Britto": every sheet writes "De Britto"/"De Brito"; none writes a
+     *     bare "Britto". The particle is part of the surname here.
+     *   - "Ignatius of Loyola": the G8 Magis class, written four ways across the
+     *     sheets, so the canonical keeps the whole phrase for "ignatius" and
+     *     "loyola" to alias onto.
+     *
+     * Both are recovered from the known canonical names rather than guessed: the
+     * longest one that appears as a trailing phrase of the registrar's full name
+     * wins. A section matching nothing known falls back to the last token, and
+     * is flagged only when a particle makes that fallback uncertain.
      *
      * @return array{0: ?string, 1: ?string}
      */
@@ -201,14 +224,58 @@ class RosterExtractionService
 
         $tokens = preg_split('/\s+/u', $stripped) ?: [];
 
-        foreach ($tokens as $i => $token) {
-            if (in_array(mb_strtolower($token), ['de', 'la', 'of', 'del'], true)) {
-                $proposal = implode(' ', array_slice($tokens, $i));
+        // Prefer a canonical name that closes the full name — "De Britto" ends
+        // "Saint John de Britto", "Ignatius of Loyola" ends its own full name.
+        // Longest wins, so a two-word canonical beats a bare surname.
+        $best = null;
+        foreach ($this->knownNames() as $known) {
+            $knownTokens = preg_split('/\s+/u', trim($known)) ?: [];
+            $tail = array_slice($tokens, -count($knownTokens));
 
-                return [$proposal, "\"{$fullName}\" contains \"{$token}\" — confirm the short name; the roster is inconsistent about keeping it."];
+            if (mb_strtolower(implode(' ', $tail)) === mb_strtolower($known)
+                && ($best === null || count($knownTokens) > count(preg_split('/\s+/u', $best)))) {
+                $best = $known;
             }
         }
 
-        return [end($tokens), null];
+        if ($best !== null) {
+            return [$best, null];
+        }
+
+        $last = end($tokens) ?: null;
+
+        foreach ($tokens as $token) {
+            if (in_array(mb_strtolower($token), self::PARTICLES, true)) {
+                return [$last, "\"{$fullName}\" contains \"{$token}\" and matches no section on file — "
+                    . 'confirm whether the short name keeps it.'];
+            }
+        }
+
+        return [$last, null];
+    }
+
+    /**
+     * Section names already known to the system: those on file for any year,
+     * plus the canonical targets SectionResolver's alias table points at. The
+     * alias values are the authority — a section named anything else would
+     * leave "de brito" and "loyola" pointing at nothing.
+     *
+     * @return array<int, string>
+     */
+    private function knownNames(): array
+    {
+        if ($this->knownNames !== null) {
+            return $this->knownNames;
+        }
+
+        $names = array_values(array_unique(array_merge(
+            SectionResolver::canonicalNames(),
+            Section::query()->pluck('name')->filter()->all(),
+        )));
+
+        // Longest first, so "Ignatius of Loyola" is considered before "Loyola".
+        usort($names, fn ($a, $b) => mb_strlen($b) <=> mb_strlen($a));
+
+        return $this->knownNames = $names;
     }
 }

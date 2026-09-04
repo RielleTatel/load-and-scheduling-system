@@ -60,6 +60,20 @@ class SectionResolver
         'paul' => '"Paul" (Saint Paul Miki) is not in the 2026 roster; likely the former name of G7 Rubio — confirm with the registrar.',
     ];
 
+    /**
+     * The canonical section names the alias table points at. These are the
+     * authority for what a section must be called: naming G8's Magis class
+     * anything but "Ignatius of Loyola" would leave the "ignatius" and "loyola"
+     * aliases pointing at nothing, and every sheet writing either form would
+     * stop resolving. Roster extraction proposes short names against this list.
+     *
+     * @return array<int, string>
+     */
+    public static function canonicalNames(): array
+    {
+        return array_values(array_unique(array_values(self::ALIASES)));
+    }
+
     private ?Collection $sections = null;
 
     /** normalized name => Section */

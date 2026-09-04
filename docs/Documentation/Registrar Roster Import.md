@@ -9,10 +9,28 @@ hand-edited `SectionSeeder`. Implements
 Admin → Reference data → **Import roster** → upload PDF → review → Confirm & import.
 
 Extraction stages rows in `roster_extraction_rows`; nothing reaches `sections`
-until the Admin confirms. Section **short names** always need confirmation: the
-registrar writes `Saint John de Britto` where the system stores `De Britto`, but
-`Saint Jose de Anchieta` is stored as `Anchieta` — the call is editorial, so the
-extractor proposes and flags rather than deciding.
+until the Admin confirms.
+
+## Short names
+
+A section's short name is what `SectionResolver` matches plantilla text against, so
+it must be the form **the sheets** use — not a matter of taste. The convention
+across all seven plantillas is *drop the particle, use the surname*
+(`Anchieta`, `Brebeuf`, `Colombiere`), which is right for 34 of the 36 sections.
+
+Two exceptions, both settled by usage:
+
+- `De Britto` — every sheet writes `De Britto`/`De Brito`, none writes bare
+  `Britto`; the particle belongs to the surname here.
+- `Ignatius of Loyola` — the G8 Magis class, written four ways across sheets, so
+  the canonical keeps the whole phrase for `ignatius` and `loyola` to alias onto.
+
+`RosterExtractionService::proposeShortName()` therefore prefers the longest known
+canonical name that closes the registrar's full name — sourced from
+`SectionResolver::canonicalNames()` (the alias table's values, which are the
+authority) plus any sections already on file — and otherwise takes the last token.
+A row is flagged only when a particle is present and nothing known corroborates
+dropping it.
 
 ## Parsing
 
