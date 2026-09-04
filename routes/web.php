@@ -45,6 +45,14 @@ Route::middleware(['auth', 'role:system_admin'])->prefix('admin')->name('admin.'
     Route::get('sections/{section}/edit', [Admin\SectionController::class, 'edit'])->name('sections.edit');
     Route::put('sections/{section}', [Admin\SectionController::class, 'update'])->name('sections.update');
 
+    // The registrar's roster arrives as one PDF each year; extraction stages it
+    // for review and nothing reaches `sections` until the Admin confirms.
+    Route::get('roster/upload', [Admin\RosterImportController::class, 'create'])->name('roster.create');
+    Route::post('roster', [Admin\RosterImportController::class, 'store'])->name('roster.store');
+    Route::get('roster/review', [Admin\RosterImportController::class, 'review'])->name('roster.review');
+    Route::patch('roster/rows/{row}', [Admin\RosterImportController::class, 'updateRow'])->name('roster.rows.update');
+    Route::post('roster/confirm', [Admin\RosterImportController::class, 'confirm'])->name('roster.confirm');
+
     Route::get('teachers', [Admin\TeacherDirectoryController::class, 'index'])->name('teachers.index');
     Route::get('teachers/create', [Admin\TeacherDirectoryController::class, 'create'])->name('teachers.create');
     Route::post('teachers', [Admin\TeacherDirectoryController::class, 'store'])->name('teachers.store');
