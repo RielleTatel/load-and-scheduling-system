@@ -10,7 +10,7 @@ class Section extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['grade_level', 'name', 'full_name', 'room', 'is_magis', 'moderator_name', 'teacher_partner_name'];
+    protected $fillable = ['school_year', 'grade_level', 'name', 'full_name', 'room', 'is_magis', 'moderator_name', 'teacher_partner_name'];
 
     public function teacherAssignments()
     {
