@@ -31,8 +31,8 @@ class TimetableExportServiceTest extends TestCase
         $this->assertStringContainsString('CLASSROOM CLEAN-UP \(CC\)', $pdf);
         $this->assertStringContainsString('REMEDIATION \(Science\)', $pdf);
         $this->assertStringContainsString('English', $pdf);
-        $this->assertStringContainsString('Music, Arts, Physical', $pdf);
-        $this->assertStringContainsString('Education and Health', $pdf);
+        $this->assertStringContainsString('(MAPEH)', $pdf);
+        $this->assertStringNotContainsString('Music, Arts, Physical', $pdf);
         $this->assertStringContainsString('Alexandria Catherine Longteacher-Surname', $pdf);
         $this->assertStringNotContainsString('(PERIOD)', $pdf);
         $this->assertStringNotContainsString('(P1)', $pdf);
@@ -65,7 +65,8 @@ class TimetableExportServiceTest extends TestCase
         $this->assertStringContainsString('CLASSROOM CLEAN-UP (CC)', $sheet);
         $this->assertStringContainsString('REMEDIATION (Science)', $sheet);
         $this->assertStringContainsString('English', $sheet);
-        $this->assertStringContainsString('Music, Arts, Physical Education and Health', $sheet);
+        $this->assertStringContainsString('MAPEH', $sheet);
+        $this->assertStringNotContainsString('Music, Arts, Physical Education and Health', $sheet);
         $this->assertStringContainsString('<mergeCells', $sheet);
         $this->assertStringNotContainsString('Period / time', $sheet);
         $this->assertStringNotContainsString('P1  ', $sheet);

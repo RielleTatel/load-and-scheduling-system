@@ -71,6 +71,29 @@ class ScheduleGenerationEngineTest extends TestCase
         );
     }
 
+    public function test_it_solves_multiple_sections_that_share_each_subject_teacher(): void
+    {
+        $assignments = [];
+        foreach (ScheduleReadinessService::SUBJECT_CODES as $index => $code) {
+            $assignments[$code] = ['department_id' => $index + 1, 'teacher_id' => $index + 1];
+        }
+        $sections = array_map(
+            fn (int $id): array => [
+                'id' => $id,
+                'grade_level' => 'G7',
+                'name' => 'Section '.$id,
+                'assignments' => $assignments,
+            ],
+            range(1, 3),
+        );
+
+        $result = (new ScheduleGenerationEngine(new ScheduleConstraintValidator))
+            ->generate($sections, [], 701, 5);
+
+        $this->assertCount(105, $result['entries']);
+        $this->assertSame([], $result['issues']);
+    }
+
     private function sections(): array
     {
         $firstAssignments = [];

@@ -19,7 +19,7 @@ class TimetableLayoutTest extends TestCase
         $this->assertSame('Science and Technology', $layout->subjectName('SCI'));
         $this->assertSame('CLE', $layout->subjectName('CLE', 'Christian Life Education'));
         $this->assertSame('TLE', $layout->subjectName('TLE', 'Technology and Livelihood Education'));
-        $this->assertSame('Music, Arts, Physical Education and Health', $layout->subjectName('MAPEH'));
+        $this->assertSame('MAPEH', $layout->subjectName('MAPEH'));
         $this->assertSame('Fallback Subject', $layout->subjectName('OTHER', 'Fallback Subject'));
     }
 

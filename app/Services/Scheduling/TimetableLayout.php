@@ -38,7 +38,7 @@ final class TimetableLayout
         'FIL' => 'Filipino',
         'SOC' => 'Social Studies',
         'TLE' => 'TLE',
-        'MAPEH' => 'Music, Arts, Physical Education and Health',
+        'MAPEH' => 'MAPEH',
     ];
 
     /** @return list<string> */
