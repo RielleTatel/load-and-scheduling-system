@@ -2,6 +2,7 @@
 
 namespace App\Services\Scheduling;
 
+use App\Enums\TimetableKind;
 use Illuminate\Support\Collection;
 
 final class TimetableLayout
@@ -33,7 +34,7 @@ final class TimetableLayout
     private const SUBJECT_NAMES = [
         'ENG' => 'English',
         'MATH' => 'Mathematics',
-        'SCI' => 'Science and Technology',
+        'SCI' => 'Science',
         'CLE' => 'CLE',
         'FIL' => 'Filipino',
         'SOC' => 'Social Studies',
@@ -50,10 +51,14 @@ final class TimetableLayout
     /**
      * @return list<array{type:string,time:string,label:string,period:?int}>
      */
-    public function rows(int $day): array
+    public function rows(int $day, TimetableKind $kind = TimetableKind::Normal): array
     {
         $rows = [];
-        foreach (self::PERIOD_TIMES as $period => $time) {
+        $times = self::PERIOD_TIMES;
+        if ($kind === TimetableKind::Special) {
+            $times[8] = '3:00 - 3:50';
+        }
+        foreach ($times as $period => $time) {
             $rows[] = ['type' => 'subject', 'time' => $time, 'label' => '', 'period' => $period];
 
             if ($period === 2) {
@@ -63,6 +68,13 @@ final class TimetableLayout
             }
         }
 
+        if ($kind === TimetableKind::Special) {
+            $rows[] = ['type' => 'post_class', 'time' => '3:50 - 3:55', 'label' => 'EXAMEN', 'period' => null];
+            $rows[] = ['type' => 'post_class', 'time' => '3:55 - 4:10', 'label' => 'CLASSROOM CLEAN-UP (CC)', 'period' => null];
+            $rows[] = ['type' => 'post_class', 'time' => '4:10', 'label' => 'DISMISSAL', 'period' => null];
+
+            return $rows;
+        }
         $rows[] = ['type' => 'post_class', 'time' => '3:00 - 3:05', 'label' => 'EXAMEN', 'period' => null];
         $rows[] = ['type' => 'post_class', 'time' => '3:05 - 3:20', 'label' => 'CLASSROOM CLEAN-UP (CC)', 'period' => null];
         $rows[] = [
@@ -81,7 +93,7 @@ final class TimetableLayout
     }
 
     /**
-     * @param Collection<int, mixed> $sections
+     * @param  Collection<int, mixed>  $sections
      * @return array<string, Collection<int, mixed>>
      */
     public function groupSections(Collection $sections): array

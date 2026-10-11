@@ -57,7 +57,7 @@
         </div>
 
         <form method="POST" action="{{ route('chair.submission.store') }}"
-              onsubmit="return confirm('Submit your department dataset? Editing will be locked until it is returned.')">
+              data-confirm="Submit your department dataset? Editing will be locked until it is returned." data-confirm-title="Submit department dataset" data-confirm-label="Submit" data-confirm-icon="submit">
             @csrf
             <button type="submit" class="btn-hero">Submit for review</button>
             <a href="{{ route('chair.dashboard') }}" class="btn-ghost ml-2">Back</a>

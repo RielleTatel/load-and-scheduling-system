@@ -7,13 +7,14 @@ use RuntimeException;
 final class ScheduleSearchExhaustedException extends RuntimeException
 {
     /**
-     * @param list<array<string, int|string>> $bestEntries
-     * @param list<array<string, mixed>> $remainingIssues
+     * @param  list<array<string, int|string>>  $bestEntries
+     * @param  list<array<string, mixed>>  $remainingIssues
      */
     public function __construct(
         string $message,
         public readonly array $bestEntries = [],
         public readonly array $remainingIssues = [],
+        public readonly ?int $bestPenalty = null,
     ) {
         parent::__construct($message);
     }

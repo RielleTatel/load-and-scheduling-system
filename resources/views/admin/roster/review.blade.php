@@ -3,7 +3,7 @@
         <x-slot:actions>
             @if ($rows->isNotEmpty())
                 <form method="POST" action="{{ route('admin.roster.confirm') }}"
-                      onsubmit="return confirm('Import this roster as the section list for {{ $import->school_year }}?')">
+                      data-confirm="Import this roster as the section list for {{ $import->school_year }}?" data-confirm-title="Import section roster" data-confirm-label="Confirm and import" data-confirm-icon="import">
                     @csrf
                     <button type="submit" class="btn-hero">Confirm &amp; import</button>
                 </form>

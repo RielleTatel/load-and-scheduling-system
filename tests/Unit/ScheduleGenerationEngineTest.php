@@ -48,7 +48,7 @@ class ScheduleGenerationEngineTest extends TestCase
             $this->fail('Impossible inputs must not return a conflicted timetable.');
         } catch (\Throwable $exception) {
             $this->assertSame(
-                'App\\Services\\Scheduling\\ScheduleSearchExhaustedException',
+                'App\\Services\\Scheduling\\ScheduleInfeasibleException',
                 $exception::class,
             );
         }

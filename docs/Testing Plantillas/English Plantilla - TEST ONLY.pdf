@@ -1,0 +1,1191 @@
+%PDF-1.4
+%“Œ‹ž ReportLab Generated PDF document (opensource)
+1 0 obj
+<<
+/F1 2 0 R /F2 3 0 R /F3 4 0 R /F4 5 0 R
+>>
+endobj
+2 0 obj
+<<
+/BaseFont /Helvetica /Encoding /WinAnsiEncoding /Name /F1 /Subtype /Type1 /Type /Font
+>>
+endobj
+3 0 obj
+<<
+/BaseFont /Times-Bold /Encoding /WinAnsiEncoding /Name /F2 /Subtype /Type1 /Type /Font
+>>
+endobj
+4 0 obj
+<<
+/BaseFont /Times-Roman /Encoding /WinAnsiEncoding /Name /F3 /Subtype /Type1 /Type /Font
+>>
+endobj
+5 0 obj
+<<
+/BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding /Name /F4 /Subtype /Type1 /Type /Font
+>>
+endobj
+6 0 obj
+<<
+/Contents 10 0 R /MediaBox [ 0 0 936 612 ] /Parent 9 0 R /Resources <<
+/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
+>> /Rotate 0 /Trans <<
+
+>> 
+  /Type /Page
+>>
+endobj
+7 0 obj
+<<
+/PageMode /UseNone /Pages 9 0 R /Type /Catalog
+>>
+endobj
+8 0 obj
+<<
+/Author (anonymous) /CreationDate (D:20260930202912+08'00') /Creator (anonymous) /Keywords () /ModDate (D:20260930202912+08'00') /Producer (ReportLab PDF Library - \(opensource\)) 
+  /Subject (Synthetic English teacher and section data for local schedule testing) /Title (English Plantilla - TEST ONLY - SY 2026-2027) /Trapped /False
+>>
+endobj
+9 0 obj
+<<
+/Count 1 /Kids [ 6 0 R ] /Type /Pages
+>>
+endobj
+10 0 obj
+<<
+/Length 24127
+>>
+stream
+1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
+.12549 .156863 .2 rg
+BT /F2 15 Tf 18 TL ET
+BT 1 0 0 1 360.7125 574 Tm (Ateneo de Zamboanga University) Tj T* ET
+BT /F3 11 Tf 13.2 TL ET
+BT 1 0 0 1 425.221 556 Tm (Junior High School) Tj T* ET
+BT 1 0 0 1 400.031 541 Tm (PAASCU Level III Accredited) Tj T* ET
+BT /F2 10 Tf 12 TL ET
+BT 1 0 0 1 433.695 526 Tm (S.Y. 2026 - 2027) Tj T* ET
+0 0 0 RG
+.8 w
+n 20 509 m 916 509 l S
+.12549 .156863 .2 rg
+BT /F2 12 Tf 14.4 TL ET
+BT 1 0 0 1 396.492 488 Tm (ENGLISH DEPARTMENT) Tj T* ET
+BT /F2 10.5 Tf 12.6 TL ET
+BT 1 0 0 1 434.3055 472 Tm (Teaching Load) Tj T* ET
+.647059 .156863 .156863 rg
+BT /F4 9 Tf 10.8 TL ET
+BT 1 0 0 1 340.254 457 Tm (DRAFT - TEST DATA ONLY - NOT AN OFFICIAL PLANTILLA) Tj T* ET
+.12549 .156863 .2 rg
+BT /F1 7 Tf 8.4 TL ET
+BT 1 0 0 1 316.065 449 Tm (Synthetic teacher names and assignments for software testing. Do not use as official staffing data.) Tj T* ET
+.933333 .945098 .956863 rg
+n 20 380 158 66 re f*
+.298039 .345098 .4 RG
+.45 w
+n 20 380 158 66 re S
+BT /F2 8 Tf 9.6 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 69.676 410.44 Tm (Name of Teacher) Tj T* ET
+.933333 .945098 .956863 rg
+n 178 428 260 18 re f*
+.298039 .345098 .4 RG
+.45 w
+n 178 428 260 18 re S
+BT /F2 7.4 Tf 8.88 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 245.5181 434.632 Tm (Grade Level Classes \(5 hours per week\)) Tj T* ET
+.933333 .945098 .956863 rg
+n 178 380 65 48 re f*
+.298039 .345098 .4 RG
+.45 w
+n 178 380 65 48 re S
+BT /F2 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 198.348 401.76 Tm (Grade 7) Tj T* ET
+.933333 .945098 .956863 rg
+n 243 380 65 48 re f*
+.298039 .345098 .4 RG
+.45 w
+n 243 380 65 48 re S
+BT /F2 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 263.348 401.76 Tm (Grade 8) Tj T* ET
+.933333 .945098 .956863 rg
+n 308 380 65 48 re f*
+.298039 .345098 .4 RG
+.45 w
+n 308 380 65 48 re S
+BT /F2 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 328.348 401.76 Tm (Grade 9) Tj T* ET
+.933333 .945098 .956863 rg
+n 373 380 65 48 re f*
+.298039 .345098 .4 RG
+.45 w
+n 373 380 65 48 re S
+BT /F2 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 391.598 401.76 Tm (Grade 10) Tj T* ET
+.933333 .945098 .956863 rg
+n 438 380 44 66 re f*
+.298039 .345098 .4 RG
+.45 w
+n 438 380 44 66 re S
+BT /F2 6.2 Tf 7.44 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 452.9382 418.116 Tm (Class) Tj T* ET
+BT 1 0 0 1 445.5385 411.016 Tm (Moderator) Tj T* ET
+BT 1 0 0 1 448.0309 403.916 Tm (\(3 hours\)) Tj T* ET
+.933333 .945098 .956863 rg
+n 482 380 44 66 re f*
+.298039 .345098 .4 RG
+.45 w
+n 482 380 44 66 re S
+BT /F2 6.2 Tf 7.44 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 493.3205 418.116 Tm (Honor's) Tj T* ET
+BT 1 0 0 1 496.9382 411.016 Tm (Class) Tj T* ET
+BT 1 0 0 1 492.0309 403.916 Tm (\(8 hours\)) Tj T* ET
+.933333 .945098 .956863 rg
+n 526 380 52 66 re f*
+.298039 .345098 .4 RG
+.45 w
+n 526 380 52 66 re S
+BT /F2 6.2 Tf 7.44 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 533.1427 418.116 Tm (Total Number) Tj T* ET
+BT 1 0 0 1 536.4132 411.016 Tm (of Teaching) Tj T* ET
+BT 1 0 0 1 543.7323 403.916 Tm (Hours) Tj T* ET
+.933333 .945098 .956863 rg
+n 578 380 46 66 re f*
+.298039 .345098 .4 RG
+.45 w
+n 578 380 46 66 re S
+BT /F2 6.2 Tf 7.44 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 583.6927 418.116 Tm (Service Load) Tj T* ET
+BT 1 0 0 1 582.3163 411.016 Tm (\(Remediation,) Tj T* ET
+BT 1 0 0 1 578.6955 403.916 Tm (school functions\)) Tj T* ET
+.933333 .945098 .956863 rg
+n 624 380 68 66 re f*
+.298039 .345098 .4 RG
+.45 w
+n 624 380 68 66 re S
+BT /F2 6.2 Tf 7.44 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 650.0795 414.566 Tm (Other) Tj T* ET
+BT 1 0 0 1 640.4323 407.466 Tm (Assignment/s) Tj T* ET
+.933333 .945098 .956863 rg
+n 692 380 58 66 re f*
+.298039 .345098 .4 RG
+.45 w
+n 692 380 58 66 re S
+BT /F2 6.2 Tf 7.44 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 706.5292 418.116 Tm (Equivalent) Tj T* ET
+BT 1 0 0 1 706.6222 411.016 Tm (Number of) Tj T* ET
+BT 1 0 0 1 712.7323 403.916 Tm (Hours) Tj T* ET
+.933333 .945098 .956863 rg
+n 750 380 58 66 re f*
+.298039 .345098 .4 RG
+.45 w
+n 750 380 58 66 re S
+BT /F2 6.2 Tf 7.44 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 760.1427 418.116 Tm (Total Number) Tj T* ET
+BT 1 0 0 1 757.9045 411.016 Tm (of Non-teaching) Tj T* ET
+BT 1 0 0 1 770.7323 403.916 Tm (Hours) Tj T* ET
+.933333 .945098 .956863 rg
+n 808 380 50 66 re f*
+.298039 .345098 .4 RG
+.45 w
+n 808 380 50 66 re S
+BT /F2 6.2 Tf 7.44 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 814.1427 414.566 Tm (Total Number) Tj T* ET
+BT 1 0 0 1 821.375 407.466 Tm (of Hours) Tj T* ET
+.933333 .945098 .956863 rg
+n 858 380 58 66 re f*
+.298039 .345098 .4 RG
+.45 w
+n 858 380 58 66 re S
+BT /F2 6.2 Tf 7.44 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 874.6 418.116 Tm (Overload) Tj T* ET
+BT 1 0 0 1 877.0924 411.016 Tm (in units) Tj T* ET
+BT 1 0 0 1 867.5351 403.916 Tm (\(Full load 21h\)) Tj T* ET
+1 1 1 rg
+n 20 340 158 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 20 340 158 40 re S
+1 1 1 rg
+n 178 340 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 178 340 65 40 re S
+1 1 1 rg
+n 243 340 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 243 340 65 40 re S
+1 1 1 rg
+n 308 340 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 308 340 65 40 re S
+1 1 1 rg
+n 373 340 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 373 340 65 40 re S
+1 1 1 rg
+n 438 340 44 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 438 340 44 40 re S
+1 1 1 rg
+n 482 340 44 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 482 340 44 40 re S
+1 1 1 rg
+n 526 340 52 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 526 340 52 40 re S
+1 1 1 rg
+n 578 340 46 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 578 340 46 40 re S
+1 1 1 rg
+n 624 340 68 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 624 340 68 40 re S
+1 1 1 rg
+n 692 340 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 692 340 58 40 re S
+1 1 1 rg
+n 750 340 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 750 340 58 40 re S
+1 1 1 rg
+n 808 340 50 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 808 340 50 40 re S
+1 1 1 rg
+n 858 340 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 858 340 58 40 re S
+.12549 .156863 .2 rg
+BT /F2 8.1 Tf 9.72 TL ET
+BT 1 0 0 1 25 368 Tm (1. TEST ENGLISH TEACHER ALPHA) Tj T* ET
+BT /F3 7.4 Tf 8.88 TL ET
+BT 1 0 0 1 35 355 Tm (\(FT Probationary 1\)) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 192.7095 346 Tm (Arrowsmith,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 265.098 346 Tm (Borgia,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 326.99 346 Tm (Anchieta,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 388.8785 346 Tm (Berchmans,) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 548.4 346 Tm (20) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 599.2 346 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 719.2 346 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 777.2 346 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 829.4 346 Tm (20) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 885.2 346 Tm (0) Tj T* ET
+1 1 1 rg
+n 20 300 158 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 20 300 158 40 re S
+1 1 1 rg
+n 178 300 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 178 300 65 40 re S
+1 1 1 rg
+n 243 300 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 243 300 65 40 re S
+1 1 1 rg
+n 308 300 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 308 300 65 40 re S
+1 1 1 rg
+n 373 300 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 373 300 65 40 re S
+1 1 1 rg
+n 438 300 44 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 438 300 44 40 re S
+1 1 1 rg
+n 482 300 44 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 482 300 44 40 re S
+1 1 1 rg
+n 526 300 52 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 526 300 52 40 re S
+1 1 1 rg
+n 578 300 46 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 578 300 46 40 re S
+1 1 1 rg
+n 624 300 68 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 624 300 68 40 re S
+1 1 1 rg
+n 692 300 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 692 300 58 40 re S
+1 1 1 rg
+n 750 300 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 750 300 58 40 re S
+1 1 1 rg
+n 808 300 50 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 808 300 50 40 re S
+1 1 1 rg
+n 858 300 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 858 300 58 40 re S
+.12549 .156863 .2 rg
+BT /F2 8.1 Tf 9.72 TL ET
+BT 1 0 0 1 25 328 Tm (2. TEST ENGLISH TEACHER BRAVO) Tj T* ET
+BT /F3 7.4 Tf 8.88 TL ET
+BT 1 0 0 1 35 315 Tm (\(FT Probationary 1\)) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 194.071 306 Tm (Bellarmine,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 265.875 306 Tm (Briant,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 328.3515 306 Tm (Brebeuf,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 392.5675 306 Tm (Canisius,) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 548.4 306 Tm (20) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 599.2 306 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 719.2 306 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 777.2 306 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 829.4 306 Tm (20) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 885.2 306 Tm (0) Tj T* ET
+1 1 1 rg
+n 20 260 158 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 20 260 158 40 re S
+1 1 1 rg
+n 178 260 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 178 260 65 40 re S
+1 1 1 rg
+n 243 260 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 243 260 65 40 re S
+1 1 1 rg
+n 308 260 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 308 260 65 40 re S
+1 1 1 rg
+n 373 260 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 373 260 65 40 re S
+1 1 1 rg
+n 438 260 44 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 438 260 44 40 re S
+1 1 1 rg
+n 482 260 44 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 482 260 44 40 re S
+1 1 1 rg
+n 526 260 52 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 526 260 52 40 re S
+1 1 1 rg
+n 578 260 46 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 578 260 46 40 re S
+1 1 1 rg
+n 624 260 68 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 624 260 68 40 re S
+1 1 1 rg
+n 692 260 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 692 260 58 40 re S
+1 1 1 rg
+n 750 260 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 750 260 58 40 re S
+1 1 1 rg
+n 808 260 50 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 808 260 50 40 re S
+1 1 1 rg
+n 858 260 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 858 260 58 40 re S
+.12549 .156863 .2 rg
+BT /F2 8.010392 Tf 9.61247 TL ET
+BT 1 0 0 1 25 288 Tm (3. TEST ENGLISH TEACHER CHARLIE) Tj T* ET
+BT /F3 7.4 Tf 8.88 TL ET
+BT 1 0 0 1 35 275 Tm (\(FT Probationary 1\)) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 196.7905 266 Tm (Campion,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 264.902 266 Tm (Goupil,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 331.071 266 Tm (Evans,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 391.4055 266 Tm (Chabanel,) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 548.4 266 Tm (20) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 599.2 266 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 719.2 266 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 777.2 266 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 829.4 266 Tm (20) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 885.2 266 Tm (0) Tj T* ET
+1 1 1 rg
+n 20 220 158 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 20 220 158 40 re S
+1 1 1 rg
+n 178 220 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 178 220 65 40 re S
+1 1 1 rg
+n 243 220 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 243 220 65 40 re S
+1 1 1 rg
+n 308 220 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 308 220 65 40 re S
+1 1 1 rg
+n 373 220 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 373 220 65 40 re S
+1 1 1 rg
+n 438 220 44 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 438 220 44 40 re S
+1 1 1 rg
+n 482 220 44 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 482 220 44 40 re S
+1 1 1 rg
+n 526 220 52 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 526 220 52 40 re S
+1 1 1 rg
+n 578 220 46 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 578 220 46 40 re S
+1 1 1 rg
+n 624 220 68 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 624 220 68 40 re S
+1 1 1 rg
+n 692 220 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 692 220 58 40 re S
+1 1 1 rg
+n 750 220 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 750 220 58 40 re S
+1 1 1 rg
+n 808 220 50 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 808 220 50 40 re S
+1 1 1 rg
+n 858 220 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 858 220 58 40 re S
+.12549 .156863 .2 rg
+BT /F2 8.1 Tf 9.72 TL ET
+BT 1 0 0 1 25 248 Tm (4. TEST ENGLISH TEACHER DELTA) Tj T* ET
+BT /F3 7.4 Tf 8.88 TL ET
+BT 1 0 0 1 35 235 Tm (\(FT Probationary 1\)) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 200.294 226 Tm (Claver,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 248.767 226 Tm (Ignatius of Loyola,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 330.1015 226 Tm (Garnet,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 388.098 226 Tm (Colombiere,) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 548.4 226 Tm (20) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 599.2 226 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 719.2 226 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 777.2 226 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 829.4 226 Tm (20) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 885.2 226 Tm (0) Tj T* ET
+1 1 1 rg
+n 20 180 158 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 20 180 158 40 re S
+1 1 1 rg
+n 178 180 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 178 180 65 40 re S
+1 1 1 rg
+n 243 180 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 243 180 65 40 re S
+1 1 1 rg
+n 308 180 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 308 180 65 40 re S
+1 1 1 rg
+n 373 180 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 373 180 65 40 re S
+1 1 1 rg
+n 438 180 44 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 438 180 44 40 re S
+1 1 1 rg
+n 482 180 44 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 482 180 44 40 re S
+1 1 1 rg
+n 526 180 52 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 526 180 52 40 re S
+1 1 1 rg
+n 578 180 46 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 578 180 46 40 re S
+1 1 1 rg
+n 624 180 68 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 624 180 68 40 re S
+1 1 1 rg
+n 692 180 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 692 180 58 40 re S
+1 1 1 rg
+n 750 180 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 750 180 58 40 re S
+1 1 1 rg
+n 808 180 50 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 808 180 50 40 re S
+1 1 1 rg
+n 858 180 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 858 180 58 40 re S
+.12549 .156863 .2 rg
+BT /F2 8.1 Tf 9.72 TL ET
+BT 1 0 0 1 25 208 Tm (5. TEST ENGLISH TEACHER ECHO) Tj T* ET
+BT /F3 7.4 Tf 8.88 TL ET
+BT 1 0 0 1 35 195 Tm (\(FT Probationary 1\)) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 196.5 186 Tm (De Britto,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 266.071 186 Tm (Lewis,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 329.517 186 Tm (Jerome,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 395.294 186 Tm (Daniel,) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 548.4 186 Tm (20) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 599.2 186 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 719.2 186 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 777.2 186 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 829.4 186 Tm (20) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 885.2 186 Tm (0) Tj T* ET
+1 1 1 rg
+n 20 140 158 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 20 140 158 40 re S
+1 1 1 rg
+n 178 140 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 178 140 65 40 re S
+1 1 1 rg
+n 243 140 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 243 140 65 40 re S
+1 1 1 rg
+n 308 140 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 308 140 65 40 re S
+1 1 1 rg
+n 373 140 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 373 140 65 40 re S
+1 1 1 rg
+n 438 140 44 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 438 140 44 40 re S
+1 1 1 rg
+n 482 140 44 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 482 140 44 40 re S
+1 1 1 rg
+n 526 140 52 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 526 140 52 40 re S
+1 1 1 rg
+n 578 140 46 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 578 140 46 40 re S
+1 1 1 rg
+n 624 140 68 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 624 140 68 40 re S
+1 1 1 rg
+n 692 140 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 692 140 58 40 re S
+1 1 1 rg
+n 750 140 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 750 140 58 40 re S
+1 1 1 rg
+n 808 140 50 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 808 140 50 40 re S
+1 1 1 rg
+n 858 140 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 858 140 58 40 re S
+.12549 .156863 .2 rg
+BT /F2 7.89165 Tf 9.46998 TL ET
+BT 1 0 0 1 25 168 Tm (6. TEST ENGLISH TEACHER FOXTROT) Tj T* ET
+BT /F3 7.4 Tf 8.88 TL ET
+BT 1 0 0 1 35 155 Tm (\(FT Probationary 1\)) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 200.098 146 Tm (Jogues,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 264.125 146 Tm (Ogilvie,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 329.7095 146 Tm (Kostka,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 396.6555 146 Tm (Faber,) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 548.4 146 Tm (20) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 599.2 146 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 719.2 146 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 777.2 146 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 829.4 146 Tm (20) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 885.2 146 Tm (0) Tj T* ET
+1 1 1 rg
+n 20 100 158 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 20 100 158 40 re S
+1 1 1 rg
+n 178 100 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 178 100 65 40 re S
+1 1 1 rg
+n 243 100 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 243 100 65 40 re S
+1 1 1 rg
+n 308 100 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 308 100 65 40 re S
+1 1 1 rg
+n 373 100 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 373 100 65 40 re S
+1 1 1 rg
+n 438 100 44 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 438 100 44 40 re S
+1 1 1 rg
+n 482 100 44 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 482 100 44 40 re S
+1 1 1 rg
+n 526 100 52 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 526 100 52 40 re S
+1 1 1 rg
+n 578 100 46 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 578 100 46 40 re S
+1 1 1 rg
+n 624 100 68 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 624 100 68 40 re S
+1 1 1 rg
+n 692 100 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 692 100 58 40 re S
+1 1 1 rg
+n 750 100 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 750 100 58 40 re S
+1 1 1 rg
+n 808 100 50 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 808 100 50 40 re S
+1 1 1 rg
+n 858 100 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 858 100 58 40 re S
+.12549 .156863 .2 rg
+BT /F2 8.1 Tf 9.72 TL ET
+BT 1 0 0 1 25 128 Tm (7. TEST ENGLISH TEACHER GOLF) Tj T* ET
+BT /F3 7.4 Tf 8.88 TL ET
+BT 1 0 0 1 35 115 Tm (\(FT Probationary 1\)) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 196.6015 106 Tm (Pongracz,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 261.206 106 Tm (Pignatelli,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 330.6825 106 Tm (Morse,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 393.1555 106 Tm (Hurtado,) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 548.4 106 Tm (20) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 599.2 106 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 719.2 106 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 777.2 106 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 829.4 106 Tm (20) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 885.2 106 Tm (0) Tj T* ET
+1 1 1 rg
+n 20 60 158 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 20 60 158 40 re S
+1 1 1 rg
+n 178 60 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 178 60 65 40 re S
+1 1 1 rg
+n 243 60 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 243 60 65 40 re S
+1 1 1 rg
+n 308 60 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 308 60 65 40 re S
+1 1 1 rg
+n 373 60 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 373 60 65 40 re S
+1 1 1 rg
+n 438 60 44 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 438 60 44 40 re S
+1 1 1 rg
+n 482 60 44 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 482 60 44 40 re S
+1 1 1 rg
+n 526 60 52 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 526 60 52 40 re S
+1 1 1 rg
+n 578 60 46 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 578 60 46 40 re S
+1 1 1 rg
+n 624 60 68 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 624 60 68 40 re S
+1 1 1 rg
+n 692 60 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 692 60 58 40 re S
+1 1 1 rg
+n 750 60 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 750 60 58 40 re S
+1 1 1 rg
+n 808 60 50 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 808 60 50 40 re S
+1 1 1 rg
+n 858 60 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 858 60 58 40 re S
+.12549 .156863 .2 rg
+BT /F2 8.1 Tf 9.72 TL ET
+BT 1 0 0 1 25 88 Tm (8. TEST ENGLISH TEACHER HOTEL) Tj T* ET
+BT /F3 7.4 Tf 8.88 TL ET
+BT 1 0 0 1 35 75 Tm (\(FT Probationary 1\)) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 201.652 66 Tm (Regis,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 263.7365 66 Tm (Realino,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 331.267 66 Tm (Owen,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 395.49 66 Tm (Mayer,) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 548.4 66 Tm (20) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 599.2 66 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 719.2 66 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 777.2 66 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 829.4 66 Tm (20) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 885.2 66 Tm (0) Tj T* ET
+1 1 1 rg
+n 20 20 158 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 20 20 158 40 re S
+1 1 1 rg
+n 178 20 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 178 20 65 40 re S
+1 1 1 rg
+n 243 20 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 243 20 65 40 re S
+1 1 1 rg
+n 308 20 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 308 20 65 40 re S
+1 1 1 rg
+n 373 20 65 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 373 20 65 40 re S
+1 1 1 rg
+n 438 20 44 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 438 20 44 40 re S
+1 1 1 rg
+n 482 20 44 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 482 20 44 40 re S
+1 1 1 rg
+n 526 20 52 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 526 20 52 40 re S
+1 1 1 rg
+n 578 20 46 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 578 20 46 40 re S
+1 1 1 rg
+n 624 20 68 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 624 20 68 40 re S
+1 1 1 rg
+n 692 20 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 692 20 58 40 re S
+1 1 1 rg
+n 750 20 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 750 20 58 40 re S
+1 1 1 rg
+n 808 20 50 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 808 20 50 40 re S
+1 1 1 rg
+n 858 20 58 40 re f*
+.298039 .345098 .4 RG
+.45 w
+n 858 20 58 40 re S
+.12549 .156863 .2 rg
+BT /F2 8.1 Tf 9.72 TL ET
+BT 1 0 0 1 25 48 Tm (9. TEST ENGLISH TEACHER INDIA) Tj T* ET
+BT /F3 7.4 Tf 8.88 TL ET
+BT 1 0 0 1 35 35 Tm (\(FT Probationary 1\)) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 201.0675 26 Tm (Rubio,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 265.1015 26 Tm (Xavier,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 325.044 26 Tm (Rodriguez,) Tj T* ET
+BT /F3 7 Tf 8.4 TL ET
+.12549 .156863 .2 rg
+BT 1 0 0 1 390.429 26 Tm (Southwell,) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 548.4 26 Tm (20) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 599.2 26 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 719.2 26 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 777.2 26 Tm (0) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 829.4 26 Tm (20) Tj T* ET
+.12549 .156863 .2 rg
+BT /F3 7.2 Tf 8.64 TL ET
+BT 1 0 0 1 885.2 26 Tm (0) Tj T* ET
+ 
+endstream
+endobj
+xref
+0 11
+0000000000 65535 f 
+0000000061 00000 n 
+0000000122 00000 n 
+0000000229 00000 n 
+0000000337 00000 n 
+0000000446 00000 n 
+0000000558 00000 n 
+0000000752 00000 n 
+0000000820 00000 n 
+0000001175 00000 n 
+0000001234 00000 n 
+trailer
+<<
+/ID 
+[<285d2d642e297bfab2ee4011bd341f67><285d2d642e297bfab2ee4011bd341f67>]
+% ReportLab generated PDF document -- digest (opensource)
+
+/Info 8 0 R
+/Root 7 0 R
+/Size 11
+>>
+startxref
+25414
+%%EOF

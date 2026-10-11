@@ -13,6 +13,26 @@ class TimetablePresentationService
 {
     public function __construct(private readonly TimetableLayout $layout) {}
 
+    public function generationFailureSummary(?string $message): string
+    {
+        if (str_starts_with($message ?? '', 'Scheduling cannot fit:')) {
+            return 'A teacher does not have enough available class time to meet the scheduling rules. Please review the teacher assignments and unavailable times before generating again. No new schedule was saved.';
+        }
+        if (str_starts_with($message ?? '', 'No conflict-free timetable was found within the configured search limit')) {
+            $reason = preg_match('/; remaining teacher_break=\d+(?: \[|\))/', $message)
+                ? 'This attempt ended before all classes could be arranged with the required teacher breaks.'
+                : 'This attempt ended before all classes could be arranged without scheduling conflicts.';
+
+            return $reason.' No new schedule was saved. You can try again; your existing schedules are unchanged.';
+        }
+
+        if (str_starts_with($message ?? '', 'Scheduling data is no longer ready:')) {
+            return 'The teaching assignments changed while the schedule was being prepared. Please review the checklist on the Schedules page before trying again. No new schedule was saved.';
+        }
+
+        return 'Something interrupted schedule generation. No new schedule was saved. Please ask the system administrator to check the details before trying again.';
+    }
+
     /**
      * @return array{sections:mixed, grid:array, filters:array, departments:mixed, teachers:mixed, days:list<int>, periods:list<int>}
      */
@@ -22,11 +42,13 @@ class TimetablePresentationService
         if (! in_array($grade, ['all', 'G7', 'G8', 'G9', 'G10'], true)) {
             $grade = 'G7';
         }
-        $displayDay = filter_var($request->query('day', 1), FILTER_VALIDATE_INT);
-        if ($displayDay === false || $displayDay < 1 || $displayDay > SchedulePolicy::DAYS) {
+        $requestedDay = $request->query('day', $forExport ? 'all' : 1);
+        $showAllDays = $requestedDay === 'all';
+        $displayDay = $showAllDays ? null : filter_var($requestedDay, FILTER_VALIDATE_INT);
+        if (! $showAllDays && ($displayDay === false || $displayDay < 1 || $displayDay > SchedulePolicy::DAYS)) {
             $displayDay = 1;
         }
-        $days = $forExport && ! $request->has('day') ? range(1, SchedulePolicy::DAYS) : [(int) $displayDay];
+        $days = $showAllDays ? range(1, SchedulePolicy::DAYS) : [(int) $displayDay];
 
         $sectionsQuery = Section::query()->where('school_year', $timetable->school_year);
         if ($grade !== 'all') {
@@ -36,7 +58,7 @@ class TimetablePresentationService
         $sectionId = filter_var($request->query('section_id'), FILTER_VALIDATE_INT);
         if ($sectionId !== false && $sectionId !== null && $sectionId > 0) {
             $section = Section::query()->where('school_year', $timetable->school_year)->findOrFail($sectionId);
-            $sectionsQuery->whereKey($section->id);
+            $sectionsQuery = Section::query()->where('school_year', $timetable->school_year)->whereKey($section->id);
             $grade = $section->grade_level->value;
         } else {
             $sectionId = null;
@@ -51,7 +73,7 @@ class TimetablePresentationService
         $filters = [
             'grade' => $grade,
             'section_id' => $sectionId,
-            'day' => (int) $displayDay,
+            'day' => $showAllDays ? 'all' : (int) $displayDay,
             'day_only' => $request->has('day'),
             'grade_only' => $request->has('grade'),
             'scope' => 'school',
@@ -89,7 +111,7 @@ class TimetablePresentationService
         $grid = [];
         foreach ($sections as $section) {
             foreach ($days as $day) {
-                for ($period = 1; $period <= SchedulePolicy::PERIODS_PER_DAY; $period++) {
+                for ($period = 1; $period <= $timetable->kind->periodsPerDay(); $period++) {
                     $grid[$section->id][$day][$period] = null;
                 }
             }
@@ -124,9 +146,12 @@ class TimetablePresentationService
             'departments' => $departments,
             'teachers' => $teachers,
             'days' => $days,
-            'displayDay' => (int) $displayDay,
-            'periods' => range(1, SchedulePolicy::PERIODS_PER_DAY),
-            'scheduleRows' => $this->layout->rows((int) $displayDay),
+            'displayDay' => $displayDay === null ? null : (int) $displayDay,
+            'periods' => range(1, $timetable->kind->periodsPerDay()),
+            'scheduleRows' => $this->layout->rows((int) ($displayDay ?? 1), $timetable->kind),
+            'scheduleRowsByDay' => collect($days)->mapWithKeys(
+                fn (int $day): array => [$day => $this->layout->rows($day, $timetable->kind)],
+            )->all(),
         ];
     }
 }

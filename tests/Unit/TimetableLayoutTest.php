@@ -16,7 +16,7 @@ class TimetableLayoutTest extends TestCase
         $this->assertSame(['G7', 'G8', 'G9', 'G10'], $layout->gradeOrder());
         $this->assertSame('English', $layout->subjectName('ENG'));
         $this->assertSame('Mathematics', $layout->subjectName('MATH'));
-        $this->assertSame('Science and Technology', $layout->subjectName('SCI'));
+        $this->assertSame('Science', $layout->subjectName('SCI'));
         $this->assertSame('CLE', $layout->subjectName('CLE', 'Christian Life Education'));
         $this->assertSame('TLE', $layout->subjectName('TLE', 'Technology and Livelihood Education'));
         $this->assertSame('MAPEH', $layout->subjectName('MAPEH'));

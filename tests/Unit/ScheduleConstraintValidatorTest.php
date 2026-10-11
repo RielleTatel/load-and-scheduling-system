@@ -58,6 +58,44 @@ class ScheduleConstraintValidatorTest extends TestCase
         $this->assertContains('teacher_break', array_column($issues, 'code'));
     }
 
+    public function test_it_reports_a_subject_that_returns_to_the_same_section_later_that_day(): void
+    {
+        $template = (new ScheduleTemplateGenerator(12))->build('G7');
+        $entries = [];
+        foreach ($template as $index => $entry) {
+            $entry['section_id'] = 1;
+            $entry['teacher_id'] = 1000 + $index;
+            $entries[] = $entry;
+        }
+
+        $dayOneMath = array_key_first(array_filter(
+            $entries,
+            fn (array $entry): bool => $entry['day'] === 1 && $entry['department_code'] === 'MATH',
+        ));
+        $dayTwoScience = array_key_first(array_filter(
+            $entries,
+            fn (array $entry): bool => $entry['day'] === 2 && $entry['department_code'] === 'SCI',
+        ));
+        $entries[$dayOneMath]['department_code'] = 'SCI';
+        $entries[$dayTwoScience]['department_code'] = 'MATH';
+
+        $issues = (new ScheduleConstraintValidator)->validate([$this->sections()[0]], $entries);
+        $repeats = array_values(array_filter(
+            $issues,
+            fn (array $issue): bool => $issue['code'] === 'subject_repeated_same_day',
+        ));
+
+        $this->assertCount(2, $repeats);
+        $this->assertContains(
+            ['SCI', 1],
+            array_map(fn (array $issue): array => [$issue['subject_code'], $issue['day']], $repeats),
+        );
+        $this->assertContains(
+            ['MATH', 2],
+            array_map(fn (array $issue): array => [$issue['subject_code'], $issue['day']], $repeats),
+        );
+    }
+
     private function validate(array $entries): array
     {
         return (new ScheduleConstraintValidator)->validate($this->sections(), $entries);

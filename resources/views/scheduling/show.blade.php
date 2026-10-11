@@ -5,6 +5,7 @@
     $pdfUrl = route($exportRoute, ['timetable' => $timetable, 'format' => 'pdf']).($exportQuery ? '?'.$exportQuery : '');
     $xlsxUrl = route($exportRoute, ['timetable' => $timetable, 'format' => 'xlsx']).($exportQuery ? '?'.$exportQuery : '');
     $editable = $isAdmin && $timetable->status === \App\Enums\TimetableStatus::Draft;
+    $special = $timetable->kind === \App\Enums\TimetableKind::Special;
     $timetableLayout = app(\App\Services\Scheduling\TimetableLayout::class);
     $subjectOptions = $departments->map(fn ($department) => [
         'code' => $department->code,
@@ -13,14 +14,15 @@
 @endphp
 
 <x-app-layout>
+    <div data-branded-dropdowns>
     <x-page-header
         :eyebrow="($isAdmin ? 'System Administration' : auth()->user()->department->name).' · '.$timetable->school_year.' · Quarter '.$timetable->quarter"
-        :title="'Normal timetable · v'.$timetable->version"
+        :title="$timetable->kind->label().' timetable · v'.$timetable->version"
     >
         <x-slot:actions>
             <a class="btn-secondary" href="{{ $pdfUrl }}">Download PDF</a>
             <a class="btn-secondary" href="{{ $xlsxUrl }}">Download Excel</a>
-            <a class="btn-ghost" href="{{ $isAdmin ? route('admin.schedules.index', ['quarter' => $timetable->quarter]) : route('chair.schedules.index', ['quarter' => $timetable->quarter]) }}">Back</a>
+            <a class="btn-ghost" href="{{ $isAdmin ? route('admin.schedules.index', ['quarter' => $timetable->quarter, 'kind' => $timetable->kind->value]) : route('chair.schedules.index', ['quarter' => $timetable->quarter, 'kind' => $timetable->kind->value]) }}">Back</a>
         </x-slot:actions>
     </x-page-header>
 
@@ -33,12 +35,12 @@
             'bg-amber-50 text-amber-800' => $timetable->status === \App\Enums\TimetableStatus::Draft,
             'bg-green-50 text-green-800' => $timetable->status === \App\Enums\TimetableStatus::Approved,
             'bg-rose-50 text-rose-800' => $timetable->status === \App\Enums\TimetableStatus::Failed,
-            'bg-slate-100 text-slate-600' => $timetable->status === \App\Enums\TimetableStatus::Superseded,
+            'bg-slate-100 text-slate-600' => in_array($timetable->status, [\App\Enums\TimetableStatus::Superseded, \App\Enums\TimetableStatus::Cancelled], true),
         ])>{{ $timetable->status->label() }}{{ $editable ? ' · not published' : '' }}</span>
         @if ($timetable->approved_at)
             <span class="text-sm text-slate-brand">Approved {{ $timetable->approved_at->format('M j, Y g:i A') }} by {{ $timetable->approvedBy?->name ?? 'Admin' }}</span>
         @elseif ($timetable->status === \App\Enums\TimetableStatus::Generating)
-            <span class="text-sm text-slate-brand">The generator is searching for the lowest-error complete timetable. Refresh this page in a little while.</span>
+            <span class="text-sm text-slate-brand">The timetable will appear automatically when generation finishes.</span>
         @endif
         @if ($isAdmin && $editable)
             <button type="button" class="btn-ghost" @click="$dispatch('schedule-undo')">Undo last edit</button>
@@ -50,17 +52,28 @@
             </form>
         @endif
         @if ($isAdmin && $editable)
-            <form method="POST" action="{{ route('admin.schedules.approve', $timetable) }}" onsubmit="return confirm('Approve and publish this timetable to Department Chairs?')">
+            <form method="POST" action="{{ route('admin.schedules.approve', $timetable) }}" data-confirm="Approve and publish this timetable to Department Chairs?" data-confirm-title="Publish timetable" data-confirm-label="Approve and publish" data-confirm-icon="publish">
                 @csrf
-                <button class="btn-primary" @disabled($hardIssueCount > 0) title="{{ $hardIssueCount ? 'Resolve all hard errors before approval.' : '' }}">Approve and publish</button>
+                <button data-schedule-approve class="btn-primary" @disabled($hardIssueCount > 0) title="{{ $hardIssueCount ? 'Resolve all hard errors before approval.' : '' }}">Approve and publish</button>
             </form>
         @endif
     </div>
 
     @if ($isAdmin && $timetable->status === \App\Enums\TimetableStatus::Failed)
         <div class="card p-4 mb-5 border border-rose-200 text-sm text-rose-800">
-            <strong>Generation failed.</strong> {{ $timetable->failure_message ?: 'Review data readiness and retry generation.' }}
+            <strong>A new schedule could not be created.</strong>
+            <p class="mt-2">{{ $generationFailureSummary }}</p>
+            @if ($timetable->failure_message)
+                <details class="mt-3 text-xs text-slate-brand">
+                    <summary class="cursor-pointer">Technical details (for system support)</summary>
+                    <p class="mt-2 break-words">{{ $timetable->failure_message }}</p>
+                </details>
+            @endif
         </div>
+    @endif
+
+    @if ($isAdmin && $timetable->status === \App\Enums\TimetableStatus::Cancelled)
+        <div class="card p-4 mb-5 text-sm text-slate-brand">Generation was stopped. No new schedule was saved. Your existing schedules are unchanged.</div>
     @endif
 
     @if ($isAdmin && $editable)
@@ -68,11 +81,12 @@
             <div>
                 <h2 class="font-bold">Admin editing</h2>
                 <p class="text-xs text-slate-brand mt-1">Click a cell to replace or swap subjects. Drag cells to swap within the same section and day. Changes save automatically; validation errors remain visible until resolved.</p>
+                @if ($special)<p class="text-xs text-slate-brand mt-2">Special-schedule edits apply to Day 1–5 together, keeping the same daily subject order.</p>@endif
             </div>
-            <span class="text-xs text-slate-brand">Edit sequence {{ $timetable->edit_sequence }}</span>
         </div>
     @endif
 
+    <div data-schedule-validation>
     @if ($isAdmin && $hardIssues->isNotEmpty())
         <section class="card p-5 mb-5 border border-rose-200">
             <div class="flex flex-wrap items-center justify-between gap-2">
@@ -97,6 +111,7 @@
     @elseif ($isAdmin && $timetable->status === \App\Enums\TimetableStatus::Draft)
         <div class="card p-4 mb-5 border border-green-200 text-sm text-green-800">No hard validation errors. This draft is ready to approve.</div>
     @endif
+    </div>
 
     @if ($sections->isNotEmpty() && $hasEntries)
         <section class="card p-4 mb-5">
@@ -130,7 +145,7 @@
                         <select name="department_id" class="form-select mt-1 w-full">
                             <option value="">All departments</option>
                             @foreach ($departments as $department)
-                                <option value="{{ $department->id }}" @selected($filters['department_id'] === $department->id)>{{ $department->name }}</option>
+                                <option value="{{ $department->id }}" @selected($filters['department_id'] === $department->id)>{{ $timetableLayout->subjectName($department->code, $department->name) }}</option>
                             @endforeach
                         </select>
                     </label>
@@ -145,8 +160,9 @@
                 </label>
                 <label class="block text-xs font-semibold text-slate-brand">Cycle day
                     <select name="day" data-schedule-filter="day" class="form-select mt-1 w-full">
+                        <option value="all" @selected($filters['day'] === 'all')>All days</option>
                         @foreach (range(1, 5) as $day)
-                            <option value="{{ $day }}" @selected($displayDay === $day)>Day {{ $day }}</option>
+                            <option value="{{ $day }}" @selected($filters['day'] === $day)>Day {{ $day }}</option>
                         @endforeach
                     </select>
                 </label>
@@ -166,6 +182,7 @@
                 undoUrl: @js(route('admin.schedules.undo', $timetable)),
             })" @schedule-undo.window="undo()">
                 <div x-show="error" x-text="error" class="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800" role="alert"></div>
+                <p x-show="busy" x-cloak class="mb-3 text-sm text-slate-brand" role="status">Saving and checking the schedule…</p>
         @endif
         <div data-timetable-grid class="space-y-8">
             @foreach ($gradeGroups as $gradeCode => $gradeSections)
@@ -173,10 +190,12 @@
                     <div class="border-b border-line bg-white px-4 py-3">
                         <h2 class="font-bold text-navy">Grade {{ substr($gradeCode, 1) }} schedule</h2>
                     </div>
-                    <table class="w-full border-collapse min-w-[780px]">
+                    <div class="space-y-6 pb-6">
+                    @foreach ($days as $day)
+                    <table class="w-full border-collapse min-w-[780px]" data-day-schedule="{{ $day }}">
                         <thead>
                             <tr class="bg-emerald-600 text-white">
-                                <th colspan="{{ $gradeSections->count() + 1 }}" class="px-3 py-2 text-center text-sm font-bold tracking-wide">DAY {{ $displayDay }}</th>
+                                <th colspan="{{ $gradeSections->count() + 1 }}" class="px-3 py-2 text-center text-sm font-bold tracking-wide">DAY {{ $day }}</th>
                             </tr>
                             <tr class="bg-navy text-white">
                                 <th class="sticky left-0 bg-navy px-3 py-3 text-center text-xs min-w-[128px]">TIME</th>
@@ -186,33 +205,40 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($scheduleRows as $row)
+                            @foreach ($scheduleRowsByDay[$day] as $row)
                                 @if ($row['type'] === 'subject')
                                     @php $period = $row['period']; @endphp
                                     <tr class="border-t border-line bg-white">
                                         <th class="sticky left-0 bg-mist px-3 py-3 text-center text-xs font-semibold text-slate-brand min-w-[128px]">{{ $row['time'] }}</th>
                                         @foreach ($gradeSections as $section)
-                                            @php $entry = $grid[$section->id][$displayDay][$period] ?? null; @endphp
-                                            <td class="border-l border-line align-top p-1 min-w-[142px]"
-                                                @if ($canEditThisView) @dragover.prevent @drop="dropSwap($event, {{ $entry?->id ?? 'null' }}, {{ $section->id }}, {{ $displayDay }}, {{ $period }})" @endif>
+                                            @php $entry = $grid[$section->id][$day][$period] ?? null; @endphp
+                                            <td data-schedule-cell class="h-px border-l border-line align-top p-1 min-w-[142px]"
+                                                @if ($canEditThisView)
+                                                    @dragover="hoverDrop($event, {{ $entry?->id ?? 'null' }}, {{ $section->id }}, {{ $day }})"
+                                                    @dragleave="if (!$el.contains($event.relatedTarget)) dropTarget = null"
+                                                    @drop="dropSwap($event, {{ $entry?->id ?? 'null' }}, {{ $section->id }}, {{ $day }}, {{ $period }})"
+                                                    :class="{ 'schedule-drop-target': dropTarget === {{ $entry?->id ?? 'null' }} && dragged }"
+                                                @endif>
                                                 @if ($entry)
                                                     @php $subjectName = $timetableLayout->subjectName($entry->department->code, $entry->department->name); @endphp
                                                     @if ($canEditThisView)
                                                         <button type="button" draggable="true"
-                                                            @click="edit({{ $entry->id }}, {{ $section->id }}, {{ $displayDay }}, {{ $period }}, @js($entry->department->code))"
-                                                            @dragstart="$event.dataTransfer.setData('application/json', JSON.stringify({entryId: {{ $entry->id }}, sectionId: {{ $section->id }}, day: {{ $displayDay }}})); $event.dataTransfer.effectAllowed = 'move'"
-                                                            class="w-full min-h-[64px] rounded-md bg-blue-50 hover:bg-blue-100 border border-blue-100 px-2 py-2 text-center transition">
+                                                            @click="edit({{ $entry->id }}, {{ $section->id }}, {{ $day }}, {{ $period }}, @js($entry->department->code))"
+                                                            @dragstart="startDrag($event, {{ $entry->id }}, {{ $section->id }}, {{ $day }})"
+                                                            @dragend="endDrag()" :disabled="busy"
+                                                            :class="{ 'schedule-drag-source': dragged?.entryId === {{ $entry->id }} }"
+                                                            data-schedule-card class="schedule-edit-card w-full h-full min-h-[64px] rounded-md bg-blue-50 hover:bg-blue-100 border border-blue-100 px-2 py-2 text-center transition">
                                                             <span class="block font-bold text-[11px] leading-tight text-navy break-words">{{ $subjectName }}</span>
                                                             <span class="block text-[10px] leading-tight text-slate-brand mt-1 break-words">{{ $entry->teacher->full_name }}</span>
                                                         </button>
                                                     @else
-                                                        <div class="min-h-[64px] rounded-md bg-mist px-2 py-2 text-center">
+                                                        <div data-schedule-card class="h-full min-h-[64px] rounded-md bg-mist px-2 py-2 text-center">
                                                             <span class="block font-bold text-[11px] leading-tight text-navy break-words">{{ $subjectName }}</span>
                                                             <span class="block text-[10px] leading-tight text-slate-brand mt-1 break-words">{{ $entry->teacher->full_name }}</span>
                                                         </div>
                                                     @endif
                                                 @else
-                                                    <div class="min-h-[64px] grid place-items-center text-xs text-slate-brand/40">—</div>
+                                                    <div data-schedule-card class="h-full min-h-[64px] grid place-items-center text-xs text-slate-brand/40">—</div>
                                                 @endif
                                             </td>
                                         @endforeach
@@ -230,6 +256,8 @@
                             @endforeach
                         </tbody>
                     </table>
+                    @endforeach
+                    </div>
                 </section>
             @endforeach
         </div>
@@ -248,7 +276,7 @@
                         <label class="block text-sm font-semibold">Action
                             <select x-model="action" class="form-select mt-1 w-full">
                                 <option value="replace">Replace this period's subject</option>
-                                <option value="swap">Swap with another day / period in this section</option>
+                                <option value="swap">{{ $special ? 'Swap with another period on all five days' : 'Swap with another day / period in this section' }}</option>
                             </select>
                         </label>
                         <label x-show="action === 'replace'" class="block text-sm font-semibold">New subject
@@ -258,15 +286,17 @@
                                 </template>
                             </select>
                         </label>
-                        <div x-show="action === 'swap'" class="grid grid-cols-2 gap-3">
+                        <div x-show="action === 'swap'" class="grid {{ $special ? 'grid-cols-1' : 'grid-cols-2' }} gap-3">
+                            @unless ($special)
                             <label class="block text-sm font-semibold">Target day
                                 <select x-model="targetDay" class="form-select mt-1 w-full">
                                     @foreach (range(1, 5) as $day)<option value="{{ $day }}">Day {{ $day }}</option>@endforeach
                                 </select>
                             </label>
+                            @endunless
                             <label class="block text-sm font-semibold">Target period
                                 <select x-model="targetPeriod" class="form-select mt-1 w-full">
-                                    @foreach (range(1, 7) as $period)<option value="{{ $period }}">Period {{ $period }}</option>@endforeach
+                                    @foreach ($periods as $period)<option value="{{ $period }}">{{ $periodTimes[$period] }}</option>@endforeach
                                 </select>
                             </label>
                         </div>
@@ -280,9 +310,28 @@
             </div>
             </div>
         @endif
-        <p class="text-xs text-slate-brand mt-3">The same seven-period bell schedule is used for every cycle day. Day 1–5 labels do not correspond to weekdays.</p>
+        <p class="text-xs text-slate-brand mt-3">{{ $special ? 'All eight subjects meet once each day, in the same order on Day 1–5.' : 'The same seven-period bell schedule is used for every cycle day.' }} Day 1–5 labels do not correspond to weekdays.</p>
     @elseif ($isAdmin && $timetable->status === \App\Enums\TimetableStatus::Generating)
-        <div class="card p-8 text-center text-sm text-slate-brand">Generating the normal timetable. This page will show it when the background job finishes.</div>
+        <div class="card p-8 max-w-2xl mx-auto" x-data="timetableGeneration(@js(route('admin.schedules.progress', $timetable)))" data-generation-loader>
+            <div class="flex items-center gap-3">
+                <span class="schedule-spinner" aria-hidden="true"></span>
+                <h2 class="font-bold text-navy" x-text="stage">Getting ready to start</h2>
+            </div>
+            <div class="mt-5">
+                <div class="flex justify-between text-xs text-slate-brand mb-2"><span>Class periods without conflicts</span><span x-text="percent + '%'">0%</span></div>
+                <div class="h-2 bg-mist rounded-full overflow-hidden" role="progressbar" aria-label="Class periods without conflicts" :aria-valuenow="percent" aria-valuemin="0" aria-valuemax="100">
+                    <div class="h-full bg-electric rounded-full transition-[width] duration-700 motion-reduce:transition-none" :style="{ width: percent + '%' }"></div>
+                </div>
+            </div>
+            <p class="text-sm text-slate-brand mt-5">Time elapsed: <span class="font-data" x-text="elapsedLabel">0:00</span></p>
+            <p class="text-sm text-slate-brand mt-4">We’re arranging classes and checking teachers’ schedules. We’ll keep working until a schedule passes all checks, or you stop generation.</p>
+            <p class="text-xs text-slate-brand mt-3">Keep this page open. It updates automatically, and a schedule is saved only when all checks pass.</p>
+            <form method="POST" action="{{ route('admin.schedules.stop', $timetable) }}" class="mt-5" data-confirm="Stop generating this schedule? Your existing schedules will remain unchanged." data-confirm-title="Stop schedule generation" data-confirm-label="Stop generation" data-confirm-tone="danger" data-confirm-icon="stop">
+                @csrf
+                <button class="btn-secondary">Stop generation</button>
+            </form>
+            <p x-show="connectionError" x-cloak class="text-xs text-amber-800 mt-3" role="status">Trying to reconnect to check your schedule.</p>
+        </div>
     @else
         <div class="card p-8 text-center text-sm text-slate-brand">There are no schedule cells to show for the selected version.</div>
     @endif
@@ -292,12 +341,13 @@
             <div class="card p-5">
                 <h2 class="font-bold">Quarter teacher unavailability</h2>
                 <p class="text-xs text-slate-brand mt-1">These slots are hard constraints for generation and are rechecked after every draft edit.</p>
+                @if ($special)<p class="text-xs text-slate-brand mt-2">Unavailable times are shared across this quarter’s schedules. For special schedules, an unavailable time on any day is avoided on all five days.</p>@endif
                 <form method="POST" action="{{ route('admin.schedules.unavailability.store', $timetable) }}" class="grid gap-3 sm:grid-cols-2 mt-4">
                     @csrf
                     <label class="text-xs font-semibold text-slate-brand">Teacher
                         <select name="teacher_id" required class="form-select mt-1 w-full">
                             @foreach ($availabilityTeachers as $teacher)
-                                <option value="{{ $teacher->id }}">{{ $teacher->full_name }} · {{ $teacher->department?->name }}</option>
+                                <option value="{{ $teacher->id }}">{{ $teacher->full_name }}@if ($teacher->department) · {{ $timetableLayout->subjectName($teacher->department->code, $teacher->department->name) }}@endif</option>
                             @endforeach
                         </select>
                     </label>
@@ -308,7 +358,7 @@
                     </label>
                     <label class="text-xs font-semibold text-slate-brand">Period
                         <select name="period" required class="form-select mt-1 w-full">
-                            @foreach (range(1, 7) as $period)<option value="{{ $period }}">Period {{ $period }} · {{ $periodTimes[$period] }}</option>@endforeach
+                            @foreach ($periods as $period)<option value="{{ $period }}">{{ $periodTimes[$period] }}</option>@endforeach
                         </select>
                     </label>
                     <label class="text-xs font-semibold text-slate-brand">Reason (optional)
@@ -329,7 +379,7 @@
                                         <td>P{{ $slot->period }}</td>
                                         <td>{{ $slot->reason ?: '—' }}</td>
                                         <td class="text-right">
-                                            <form method="POST" action="{{ route('admin.schedules.unavailability.destroy', [$timetable, $slot]) }}" onsubmit="return confirm('Remove this unavailable slot?')">
+                                            <form method="POST" action="{{ route('admin.schedules.unavailability.destroy', [$timetable, $slot]) }}" data-confirm="Remove this unavailable slot?" data-confirm-title="Remove unavailable slot" data-confirm-label="Remove" data-confirm-tone="danger" data-confirm-icon="remove">
                                                 @csrf @method('DELETE')
                                                 <button class="text-rose-brand hover:underline">Remove</button>
                                             </form>
@@ -344,13 +394,22 @@
             <aside class="card p-5">
                 <h2 class="font-bold">Schedule rules in this version</h2>
                 <ul class="mt-3 space-y-2 text-sm text-slate-brand">
+                    @if ($special)
+                    <li>All eight subjects meet once per day in 50-minute periods, with the same order on Day 1–5.</li>
+                    <li>No double blocks, normal cycle-frequency patterns, or normal teacher-break rules apply.</li>
+                    <li>Teacher and section conflicts, current assignments, submitted plantillas, and unavailable times are still checked.</li>
+                    <li>Examen starts at 3:50; classroom clean-up ends with dismissal at 4:10. There is no remediation row.</li>
+                    @else
                     <li>One normal timetable is repeated across five cycles; each cycle is Day 1–5.</li>
                     <li>Seven 50-minute periods each day; recess and lunch are breaks, not schedulable periods.</li>
                     <li>English, Math, and Science meet five times per cycle; the other subjects occupy four periods.</li>
                     <li>TLE and MAPEH use one double block and two single periods; Grade 10 English uses two doubles and one single.</li>
-                    <li>Meeting blocks and the special examination/review timetable remain out of scope for this version.</li>
+                    <li>Single-period subjects meet at most once per day; allowed double blocks cannot be split across the day.</li>
+                    @endif
+                    <li>Meeting rules and facility capacities remain pending confirmation and are not enforced.</li>
                 </ul>
             </aside>
         </section>
     @endif
+    </div>
 </x-app-layout>

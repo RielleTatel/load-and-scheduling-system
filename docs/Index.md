@@ -6,6 +6,7 @@ Central index of all documents in this vault, organized by folder.
 
 | File | Description |
 |---|---|
+| [Scheduling Feature](Documentation/Scheduling%20Feature.md) | Current normal and special scheduling rules, Admin/Chair permissions, generation/approval checks, operation, real vs. fabricated plantilla sources, and explicitly deferred work (2026-10-02). Supersedes historical scheduling proposals where they conflict. |
 | [[Documentation/JHS Scheduling Constraints\|JHS Scheduling Constraints]] | Constraints and schedule-construction logic derived from the JHS plantilla sheets — hard constraints, load formula, workflow, open questions, scope gaps. |
 | [[Documentation/JHS Department Directory\|JHS Department Directory]] | Directory of all 7 JHS departments with teachers, sections taught, and non-teaching roles, compiled from the plantilla sheets. |
 | [[Documentation/JHS Sections Directory\|JHS Sections Directory]] | Section-centric view (grade + name) of who teaches each department and who moderates it — inverted from the Department Directory. |

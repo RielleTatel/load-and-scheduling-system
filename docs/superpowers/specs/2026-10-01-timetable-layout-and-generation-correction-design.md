@@ -1,5 +1,7 @@
 # Timetable Layout and Valid Generation Design
 
+Historical design. Later confirmed changes, including Science/MAPEH labels, All days, resumable generation, refreshed approval checks, and special review schedules, are documented in [Scheduling Feature](../../Documentation/Scheduling%20Feature.md). Where they conflict, use that current reference; retain this document for design history.
+
 **Date:** 2026-10-01  
 **Status:** Approved design, awaiting written-spec review  
 **Scope:** Normal timetable display, PDF/XLSX exports, and zero-hard-error generation

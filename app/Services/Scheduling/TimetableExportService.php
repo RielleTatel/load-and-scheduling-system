@@ -9,6 +9,7 @@ use App\Models\TimetableVersion;
 class TimetableExportService
 {
     private const PAGE_WIDTH = 842;
+
     private const PAGE_HEIGHT = 595;
 
     private TimetableLayout $layout;
@@ -60,12 +61,14 @@ class TimetableExportService
     private function sheetRows(TimetableVersion $timetable, array $data, string $grade, $sections): array
     {
         $status = $timetable->status === TimetableStatus::Approved ? 'APPROVED' : 'DRAFT - NOT APPROVED';
-        $rows = [["JHS Normal Timetable | SY {$timetable->school_year} | Quarter {$timetable->quarter} | Version {$timetable->version} | {$status}"]];
+        $label = $timetable->kind->label();
+        $rows = [["JHS {$label} Timetable | SY {$timetable->school_year} | Quarter {$timetable->quarter} | Version {$timetable->version} | {$status}"]];
         $rows[] = [$this->filterDescription($data['filters'])];
         $rows[] = [];
 
         if ($sections->isEmpty()) {
             $rows[] = ["No Grade {$grade} sections match the selected filters."];
+
             return $rows;
         }
 
@@ -75,7 +78,7 @@ class TimetableExportService
                 ['TIME'],
                 $sections->map(fn ($section) => substr($grade, 1).' - '.$section->name)->all(),
             );
-            foreach ($this->layout->rows((int) $day) as $layoutRow) {
+            foreach ($this->layout->rows((int) $day, $timetable->kind) as $layoutRow) {
                 if ($layoutRow['type'] === 'subject') {
                     $row = [$layoutRow['time']];
                     foreach ($sections as $section) {
@@ -97,7 +100,8 @@ class TimetableExportService
     {
         $lines = '';
         $isDraft = $timetable->status !== TimetableStatus::Approved;
-        $this->pdfText($lines, 3, 15, 17, 568, "JHS NORMAL TIMETABLE - SY {$timetable->school_year} - QUARTER {$timetable->quarter}");
+        $label = strtoupper($timetable->kind->label());
+        $this->pdfText($lines, 3, 15, 17, 568, "JHS {$label} TIMETABLE - SY {$timetable->school_year} - QUARTER {$timetable->quarter}");
         $this->pdfText($lines, 4, 10, 17, 546, 'GRADE '.substr($grade, 1).'  |  DAY '.$day.'  |  VERSION '.$timetable->version);
         $this->pdfText($lines, 4, 8, 700, 568, $isDraft ? 'DRAFT - NOT APPROVED' : 'APPROVED');
         $this->pdfText($lines, 3, 7, 17, 530, $this->filterDescription($data['filters']));
@@ -113,18 +117,18 @@ class TimetableExportService
 
         $cursor -= $dayHeight;
         $this->pdfCell($lines, $left, $cursor, $tableWidth, $dayHeight, [0.07, 0.58, 0.25]);
-        $this->pdfText($lines, 4, 9, $left + ($tableWidth / 2) - 14, $cursor + 6, 'DAY '.$day, 1.0);
+        $this->pdfCenteredText($lines, 4, 9, $left, $cursor + 6, $tableWidth, 'DAY '.$day, 1.0);
 
         $cursor -= $headerHeight;
         $this->pdfCell($lines, $left, $cursor, $timeWidth, $headerHeight, [0.08, 0.14, 0.23]);
-        $this->pdfText($lines, 4, 8, $left + 24, $cursor + 9, 'TIME', 1.0);
+        $this->pdfCenteredText($lines, 4, 8, $left, $cursor + 9, $timeWidth, 'TIME', 1.0);
         foreach ($sections as $index => $section) {
             $x = $left + $timeWidth + $index * $sectionWidth;
             $this->pdfCell($lines, $x, $cursor, $sectionWidth, $headerHeight, [0.08, 0.14, 0.23]);
-            $this->pdfWrappedText($lines, 4, 6.5, $x + 3, $cursor + 15, $sectionWidth - 6, substr($grade, 1).' - '.$section->name, 1.0);
+            $this->pdfWrappedText($lines, 4, 6.5, $x + 3, $cursor + 15, $sectionWidth - 6, substr($grade, 1).' - '.$section->name, 1.0, true);
         }
 
-        foreach ($this->layout->rows($day) as $row) {
+        foreach ($this->layout->rows($day, $timetable->kind) as $row) {
             $rowHeight = $row['type'] === 'subject' ? 44 : 18;
             $cursor -= $rowHeight;
             $fill = match ($row['type']) {
@@ -133,11 +137,21 @@ class TimetableExportService
                 default => [0.92, 0.95, 0.98],
             };
             $this->pdfCell($lines, $left, $cursor, $timeWidth, $rowHeight, $fill);
-            $this->pdfWrappedText($lines, 4, 6.2, $left + 4, $cursor + ($rowHeight / 2) + 2, $timeWidth - 8, $row['time']);
+            $this->pdfCenteredText($lines, 4, 6.2, $left, $cursor + ($rowHeight / 2) - 2, $timeWidth, $row['time']);
 
             if ($row['type'] !== 'subject') {
                 $this->pdfCell($lines, $left + $timeWidth, $cursor, $tableWidth - $timeWidth, $rowHeight, $fill);
-                $this->pdfText($lines, 4, 7, $left + $timeWidth + 5, $cursor + 6, $row['label']);
+                $labelWidth = $tableWidth - $timeWidth;
+                if ($row['type'] === 'break') {
+                    $letters = str_split($row['label']);
+                    $spacing = $labelWidth / (count($letters) + 1);
+                    foreach ($letters as $index => $letter) {
+                        $this->pdfCenteredText($lines, 4, 7, $left + $timeWidth + $spacing * ($index + 0.5), $cursor + 6, $spacing, $letter);
+                    }
+                } else {
+                    $this->pdfCenteredText($lines, 4, 7, $left + $timeWidth, $cursor + 6, $labelWidth, $row['label']);
+                }
+
                 continue;
             }
 
@@ -147,14 +161,23 @@ class TimetableExportService
                 $this->pdfCell($lines, $x, $cursor, $sectionWidth, $rowHeight, [1, 1, 1]);
                 if ($entry) {
                     $subject = $this->layout->subjectName($entry->department->code, $entry->department->name);
-                    $subjectLines = $this->pdfWrappedText($lines, 4, 5.4, $x + 3, $cursor + $rowHeight - 10, $sectionWidth - 6, $subject);
-                    $teacherY = $cursor + $rowHeight - 10 - ($subjectLines * 6.2) - 1;
-                    $this->pdfWrappedText($lines, 3, 5.0, $x + 3, $teacherY, $sectionWidth - 6, $entry->teacher->full_name);
+                    $subjectLines = $this->wrapPdfText(4, 6.2, $sectionWidth - 8, $subject);
+                    $teacherLines = $this->wrapPdfText(3, 5.5, $sectionWidth - 8, $entry->teacher->full_name);
+                    $height = count($subjectLines) * 7.2 + count($teacherLines) * 6.5 + 2;
+                    $y = $cursor + ($rowHeight + $height) / 2 - 6.2;
+                    foreach ($subjectLines as $line) {
+                        $this->pdfCenteredText($lines, 4, 6.2, $x + 4, $y, $sectionWidth - 8, $line);
+                        $y -= 7.2;
+                    }
+                    $y -= 2;
+                    foreach ($teacherLines as $line) {
+                        $this->pdfCenteredText($lines, 3, 5.5, $x + 4, $y, $sectionWidth - 8, $line);
+                        $y -= 6.5;
+                    }
                 }
             }
         }
 
-        $this->pdfText($lines, 3, 6, $left, 18, 'Normal Day 1-5 timetable. Recess and lunch are non-instructional breaks.');
         if ($isDraft) {
             $this->pdfText($lines, 3, 36, 280, 280, 'DRAFT', 0.92);
         }
@@ -171,19 +194,42 @@ class TimetableExportService
         float $width,
         string $text,
         float $gray = 0.12,
+        bool $center = false,
     ): int {
-        $averageCharacterWidth = max($size * 0.5, 1);
-        $charactersPerLine = max(4, (int) floor($width / $averageCharacterWidth));
+        $wrapped = $this->wrapPdfText($font, $size, $width, $text);
+        foreach ($wrapped as $index => $line) {
+            if ($center) {
+                $this->pdfCenteredText($stream, $font, $size, $x, $topY - $index * ($size + 1), $width, $line, $gray);
+            } else {
+                $this->pdfText($stream, $font, $size, $x, $topY - $index * ($size + 1), $line, $gray);
+            }
+        }
+
+        return count($wrapped);
+    }
+
+    private function wrapPdfText(int $font, float $size, float $width, string $text): array
+    {
         $words = preg_split('/\s+/u', trim($text)) ?: [];
         $wrapped = [];
         $line = '';
         foreach ($words as $word) {
             $candidate = $line === '' ? $word : $line.' '.$word;
-            if ($line !== '' && mb_strlen($candidate) > $charactersPerLine) {
-                $wrapped[] = $line;
-                $line = $word;
-            } else {
+            if ($this->pdfTextWidth($font, $size, $candidate) <= $width) {
                 $line = $candidate;
+
+                continue;
+            }
+            if ($line !== '') {
+                $wrapped[] = $line;
+                $line = '';
+            }
+            foreach (mb_str_split($word) as $character) {
+                if ($line !== '' && $this->pdfTextWidth($font, $size, $line.$character) > $width) {
+                    $wrapped[] = $line;
+                    $line = '';
+                }
+                $line .= $character;
             }
         }
         if ($line !== '') {
@@ -193,18 +239,30 @@ class TimetableExportService
             $wrapped[] = '';
         }
 
-        $lineHeight = $size + 1;
-        foreach ($wrapped as $index => $wrappedLine) {
-            $this->pdfText($stream, $font, $size, $x, $topY - ($index * $lineHeight), $wrappedLine, $gray);
-        }
+        return $wrapped;
+    }
 
-        return count($wrapped);
+    private function pdfCenteredText(string &$stream, int $font, float $size, float $x, float $y, float $width, string $text, float $gray = 0.12): void
+    {
+        $this->pdfText($stream, $font, $size, $x + max(0, ($width - $this->pdfTextWidth($font, $size, $text)) / 2), $y, $text, $gray);
+    }
+
+    private function pdfTextWidth(int $font, float $size, string $text): float
+    {
+        // Standard Helvetica glyph widths, in thousandths of an em (ASCII 32–126).
+        $widths = $font === 4
+            ? [278, 333, 474, 556, 556, 889, 722, 238, 333, 333, 389, 584, 278, 333, 278, 278, 556, 556, 556, 556, 556, 556, 556, 556, 556, 556, 333, 333, 584, 584, 584, 611, 975, 722, 722, 722, 722, 667, 611, 778, 722, 278, 556, 722, 611, 833, 722, 778, 667, 778, 722, 667, 611, 722, 667, 944, 667, 667, 611, 333, 278, 333, 584, 556, 333, 556, 611, 556, 611, 556, 333, 611, 611, 278, 278, 556, 278, 889, 611, 611, 611, 611, 389, 556, 333, 611, 556, 778, 556, 556, 500, 389, 280, 389, 584]
+            : [278, 278, 355, 556, 556, 889, 667, 191, 333, 333, 389, 584, 278, 333, 278, 278, 556, 556, 556, 556, 556, 556, 556, 556, 556, 556, 278, 278, 584, 584, 584, 556, 1015, 667, 667, 722, 722, 667, 611, 778, 722, 278, 500, 667, 556, 833, 722, 778, 667, 778, 722, 667, 611, 722, 667, 944, 667, 667, 611, 278, 278, 278, 469, 556, 333, 556, 556, 500, 556, 556, 278, 556, 556, 222, 222, 500, 222, 833, 556, 556, 556, 556, 333, 500, 278, 556, 500, 722, 500, 500, 500, 334, 260, 334, 584];
+        $ascii = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $text) ?: $text;
+
+        return array_sum(array_map(fn ($letter) => $widths[ord($letter) - 32] ?? 556, str_split($ascii))) * $size / 1000;
     }
 
     private function pdfMessagePage(string $message): string
     {
         $lines = '';
         $this->pdfText($lines, 3, 17, 40, 500, $message);
+
         return $lines;
     }
 
@@ -236,7 +294,7 @@ class TimetableExportService
             $pageId = count($objects) + 1;
             $contentId = $pageId + 1;
             $pageIds[] = $pageId.' 0 R';
-            $objects[$pageId] = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ".self::PAGE_WIDTH.' '.self::PAGE_HEIGHT."] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents {$contentId} 0 R >>";
+            $objects[$pageId] = '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 '.self::PAGE_WIDTH.' '.self::PAGE_HEIGHT."] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents {$contentId} 0 R >>";
             $objects[$contentId] = '<< /Length '.strlen($content).">>\nstream\n{$content}\nendstream";
         }
 
@@ -298,7 +356,7 @@ class TimetableExportService
             $isDay = preg_match('/^DAY [1-5]$/', $first) === 1;
             $isHeader = $first === 'TIME';
             $isBreak = in_array($second, ['RECESS', 'LUNCH'], true);
-            $isPostClass = in_array($second, ['EXAMEN', 'CLASSROOM CLEAN-UP (CC)'], true)
+            $isPostClass = in_array($second, ['EXAMEN', 'CLASSROOM CLEAN-UP (CC)', 'DISMISSAL'], true)
                 || str_starts_with($second, 'REMEDIATION (');
 
             if ($maxColumns > 1 && $first !== '' && ($rowNumber <= 2 || $isDay)) {
@@ -367,12 +425,12 @@ class TimetableExportService
             }
             $crc = crc32($content);
             $offset = strlen($local);
-            $local .= pack('VvvvvvVVVvv', 0x04034b50, 20, 0, 8, $dosTime, $dosDate, $crc, strlen($compressed), strlen($content), strlen($nameBytes), 0).$nameBytes.$compressed;
-            $central .= pack('VvvvvvvVVVvvvvvVV', 0x02014b50, 20, 20, 0, 8, $dosTime, $dosDate, $crc, strlen($compressed), strlen($content), strlen($nameBytes), 0, 0, 0, 0, 0, $offset).$nameBytes;
+            $local .= pack('VvvvvvVVVvv', 0x04034B50, 20, 0, 8, $dosTime, $dosDate, $crc, strlen($compressed), strlen($content), strlen($nameBytes), 0).$nameBytes.$compressed;
+            $central .= pack('VvvvvvvVVVvvvvvVV', 0x02014B50, 20, 20, 0, 8, $dosTime, $dosDate, $crc, strlen($compressed), strlen($content), strlen($nameBytes), 0, 0, 0, 0, 0, $offset).$nameBytes;
         }
 
         $count = count($files);
-        $end = pack('VvvvvVVv', 0x06054b50, 0, 0, $count, $count, strlen($central), strlen($local), 0);
+        $end = pack('VvvvvVVv', 0x06054B50, 0, 0, $count, $count, strlen($central), strlen($local), 0);
 
         return $local.$central.$end;
     }
@@ -411,7 +469,7 @@ class TimetableExportService
         if (! empty($filters['teacher_id'])) {
             $parts[] = 'Teacher filter applied';
         }
-        if (! empty($filters['day_only'])) {
+        if (! empty($filters['day_only']) && $filters['day'] !== 'all') {
             $parts[] = 'Day '.$filters['day'];
         } else {
             $parts[] = 'Days 1-5';

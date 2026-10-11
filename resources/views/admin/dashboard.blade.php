@@ -11,6 +11,9 @@
         <h2 class="font-bold text-base mb-3">Quick actions</h2>
         <div class="flex flex-wrap gap-2">
             <a href="{{ route('admin.users.index') }}" class="btn-primary">Manage users</a>
+            @if (Route::has('admin.schedules.index'))
+                <a href="{{ route('admin.schedules.index') }}" class="btn-secondary">Timetables</a>
+            @endif
             @if (Route::has('admin.constants.index'))
                 <a href="{{ route('admin.constants.index') }}" class="btn-secondary">System constants</a>
             @endif

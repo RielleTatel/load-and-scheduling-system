@@ -1,5 +1,11 @@
 # JHS Teaching Load & Scheduling — Constraints and Construction Logic
 
+## Current scheduling reference (2026-10-02)
+
+See [Scheduling Feature](Scheduling%20Feature.md) for the current implemented rules and workflow. The sections below retain the original source analysis, not the final implementation contract. In particular: a quarter has five cycles; Day 1–5 is not mapped to weekdays; English is required despite its real plantilla still being absent; subject daily distributions and double blocks are exact; only Admin generates/edits/publishes; special review schedules are now supported with eight 50-minute periods and identical daily order. Meeting and facility-capacity rules remain deferred. Old statements about one quarter being one cycle, facility capacity being fixed at one class, and timetables being outside scope are superseded.
+
+Remediation labels are informational, not automatic Service Load assignments. For the existing load calculator and moderator-hour corrections, also see [Load Calculation and Review Gaps Checkpoint](Load%20Calculation%20and%20Review%20Gaps%20Checkpoint.md).
+
 Scope: **Junior High School (JHS) only**, per project prioritization decision (2026-08-04). Grade School is out of scope for now, despite being named in the original system overview.
 
 Source data: the seven department "Plantilla" sheets in `Plantillas/` — `KAGAWARAN PLANTILLA .docx.pdf` (Filipino), `CLE PLANTILLA.docx.pdf`, `TLE PLATILLA.docx.pdf`, `SCIENCE PLATILLA.pdf`, `MATHEMATICS PLANTILLA.pdf`, `MAPEH PLANTILLA.docx.pdf`, `SOCIAL STUDIES PLATILLA.docx.pdf` — all for SY 2026-2027. (Updated 2026-08-04 to add Social Studies.)

@@ -3,7 +3,7 @@
         <x-slot:actions>
             @if ($rows->isNotEmpty())
                 <form method="POST" action="{{ route('chair.plantilla.confirm') }}"
-                      onsubmit="return confirm('Import these rows into your department roster?')">
+                      data-confirm="Import these rows into your department roster?" data-confirm-title="Import plantilla rows" data-confirm-label="Confirm and import" data-confirm-icon="import">
                     @csrf
                     <button type="submit" class="btn-hero">Confirm &amp; import</button>
                 </form>
@@ -163,7 +163,7 @@
                         </div>
                     </form>
                     <form id="delete-{{ $row->id }}" method="POST" action="{{ route('chair.plantilla.rows.destroy', $row) }}" class="hidden"
-                          onsubmit="return confirm('Remove this row? This can\'t be undone.')">
+                          data-confirm="Remove this row? This can’t be undone." data-confirm-title="Remove plantilla row" data-confirm-label="Remove" data-confirm-tone="danger" data-confirm-icon="remove">
                         @csrf @method('DELETE')
                     </form>
                 </div>

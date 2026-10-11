@@ -6,12 +6,22 @@ use InvalidArgumentException;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
 
-final class ScheduleGenerationEngine
+final class ScheduleGenerationEngine implements TimetableGenerator
 {
     private int $bestRepairPenalty = PHP_INT_MAX;
 
     /** @var list<array<string, int|string>> */
     private array $bestRepairEntries = [];
+
+    private ?\Closure $progress = null;
+
+    private ?\Closure $checkpoint = null;
+
+    private float $searchStarted = 0;
+
+    private float $searchSeconds = 110;
+
+    private float $lastProgress = 0;
 
     private const MAX_TEMPLATES_PER_GRADE = 320;
 
@@ -26,12 +36,18 @@ final class ScheduleGenerationEngine
     public function __construct(private readonly ScheduleConstraintValidator $validator) {}
 
     /**
-     * @param list<array{id:int, grade_level:string, name:string, assignments:array<string, array{department_id:int, teacher_id:int}>}> $sections
-     * @param list<array{teacher_id:int, day:int, period:int}> $unavailable
+     * @param  list<array{id:int, grade_level:string, name:string, assignments:array<string, array{department_id:int, teacher_id:int}>}>  $sections
+     * @param  list<array{teacher_id:int, day:int, period:int}>  $unavailable
      * @return array{entries:list<array<string, int|string>>, issues:list<array<string,mixed>>, score:list<int>, attempts:int}
      */
-    public function generate(array $sections, array $unavailable, int $seed, int $seconds = 110): array
+    public function generate(array $sections, array $unavailable, int $seed, int $seconds = 110, ?\Closure $progress = null, array $startingEntries = [], ?\Closure $checkpoint = null, array $fallbackEntries = []): array
     {
+        $this->progress = $progress;
+        $this->checkpoint = $checkpoint;
+        $this->searchStarted = microtime(true);
+        $this->searchSeconds = max(1, min($seconds, 110));
+        $this->lastProgress = 0;
+        $this->reportProgress();
         $this->bestRepairPenalty = PHP_INT_MAX;
         $this->bestRepairEntries = [];
         if ($sections === []) {
@@ -45,7 +61,7 @@ final class ScheduleGenerationEngine
         }
 
         $this->assertAssignmentsAreComplete($sections);
-        $this->assertTeacherLoadsCanFit($sections);
+        $this->assertTeacherLoadsCanFit($sections, $availability);
 
         $teacherSectionCounts = $this->teacherSectionCounts($sections);
         usort($sections, function (array $left, array $right) use ($teacherSectionCounts): int {
@@ -59,10 +75,18 @@ final class ScheduleGenerationEngine
                 : (int) $left['id'] <=> (int) $right['id'];
         });
 
+        $startingTemplates = $this->startingTemplates($sections, $startingEntries);
+        if (count($startingTemplates) === count($sections)) {
+            $candidate = $this->mappedAssignments($sections, $startingTemplates);
+            if ($this->validator->validate($sections, $candidate, $unavailable) === []) {
+                return ['entries' => $candidate, 'issues' => [], 'score' => [0, 0, 0], 'attempts' => 1];
+            }
+        }
+
         $templatePools = $this->buildTemplatePools($sections, $seed, $deadline);
         $nodes = 0;
         $checks = 0;
-        if (count($sections) >= 3) {
+        if (count($sections) >= 3 || $startingTemplates !== []) {
             $result = $this->repairSearch(
                 $sections,
                 $templatePools,
@@ -70,6 +94,7 @@ final class ScheduleGenerationEngine
                 $seed,
                 $deadline,
                 $nodes,
+                $startingTemplates,
             );
         } else {
             $teacherSlots = [];
@@ -112,6 +137,16 @@ final class ScheduleGenerationEngine
             }
         }
 
+        // Prefer adjusting the reference first. A currently valid prior schedule is
+        // a safe fallback, never an exception to the rules or teacher assignments.
+        $fallback = $this->startingTemplates($sections, $fallbackEntries);
+        if (count($fallback) === count($sections)) {
+            $candidate = $this->mappedAssignments($sections, $fallback);
+            if ($this->validator->validate($sections, $candidate, $unavailable) === []) {
+                return ['entries' => $candidate, 'issues' => [], 'score' => [0, 0, 0], 'attempts' => max(1, $nodes), 'used_fallback' => true];
+            }
+        }
+
         $remainingSummary = '';
         $bestIssues = [];
         if ($this->bestRepairEntries !== []) {
@@ -145,6 +180,7 @@ final class ScheduleGenerationEngine
             .'). No draft was created.',
             $this->bestRepairEntries,
             $bestIssues,
+            $this->bestRepairPenalty === PHP_INT_MAX ? null : $this->bestRepairPenalty,
         );
     }
 
@@ -152,9 +188,9 @@ final class ScheduleGenerationEngine
      * Min-conflicts repair is substantially more effective than chronological backtracking for
      * a school-wide graph where every section connects eight independent teacher groups.
      *
-     * @param list<array{id:int, grade_level:string, name:string, assignments:array<string, array{department_id:int, teacher_id:int}>}> $sections
-     * @param array<string, list<list<array{day:int, period:int, department_code:string}>>> $templatePools
-     * @param array<string, bool> $availability
+     * @param  list<array{id:int, grade_level:string, name:string, assignments:array<string, array{department_id:int, teacher_id:int}>}>  $sections
+     * @param  array<string, list<list<array{day:int, period:int, department_code:string}>>>  $templatePools
+     * @param  array<string, bool>  $availability
      * @return list<array<string, int|string>>|null
      */
     private function repairSearch(
@@ -164,6 +200,7 @@ final class ScheduleGenerationEngine
         int $seed,
         float $deadline,
         int &$nodes,
+        array $startingTemplates = [],
     ): ?array {
         $random = new Randomizer(new Mt19937($seed));
         $restart = 0;
@@ -199,6 +236,13 @@ final class ScheduleGenerationEngine
                 }
                 foreach ($initialOrder as $sectionIndex) {
                     $section = $sections[$sectionIndex];
+                    if ($restart === 0 && isset($startingTemplates[$sectionIndex])) {
+                        $assigned[$sectionIndex] = $startingTemplates[$sectionIndex];
+                        $this->addTemplateToState($sectionIndex, $section, $assigned[$sectionIndex], $slots);
+                        $nodes++;
+
+                        continue;
+                    }
                     $pool = $templatePools[$section['grade_level']];
                     [$baseScore] = $this->statePenalty($slots, $availability);
                     $bestScore = PHP_INT_MAX;
@@ -226,11 +270,20 @@ final class ScheduleGenerationEngine
 
             for ($iteration = 0; $iteration < $iterationLimit && microtime(true) < $deadline; $iteration++) {
                 [$score, $conflictedSections] = $this->statePenalty($slots, $availability);
+                // Coordinated reversals preserve section patterns and teacher non-overlap.
+                // They can repair break conflicts that isolated section moves cannot escape.
+                if ($score > 0 && $score < self::SLOT_CONFLICT_WEIGHT && $iteration % 20 === 0) {
+                    $this->repairDayReversals($sections, $assigned, $slots, $availability, $score);
+                    [$score, $conflictedSections] = $this->statePenalty($slots, $availability);
+                }
                 $this->bestRepairPenalty = min($this->bestRepairPenalty, $score);
                 if ($score < $globalBestScore) {
                     $globalBestScore = $score;
                     $globalBestAssigned = $assigned;
                     $this->bestRepairEntries = $this->mappedAssignments($sections, $assigned);
+                    if ($this->checkpoint) {
+                        ($this->checkpoint)($this->bestRepairEntries, $score);
+                    }
                 }
                 if ($score === 0) {
                     return $this->mappedAssignments($sections, $assigned);
@@ -267,16 +320,28 @@ final class ScheduleGenerationEngine
                         )
                         : [],
                 );
+                $candidatePool = array_values(array_filter(
+                    $candidatePool,
+                    fn (array $template): bool => $this->hasValidDailyDistribution(
+                        $template,
+                        $section['grade_level'],
+                    ),
+                ));
                 $bestScore = PHP_INT_MAX;
+                $bestDistance = PHP_INT_MAX;
                 $bestTemplates = [];
                 $scoredTemplates = [];
                 foreach ($candidatePool as $template) {
                     $candidateScore = $this->penaltyAfterAdding($section, $template, $slots, $availability, $baseScore);
+                    $distance = isset($startingTemplates[$sectionIndex])
+                        ? count(array_filter(array_keys($template), fn (int $index): bool => $template[$index]['department_code'] !== $startingTemplates[$sectionIndex][$index]['department_code']))
+                        : 0;
                     $scoredTemplates[] = [$candidateScore, $template];
-                    if ($candidateScore < $bestScore) {
+                    if ($candidateScore < $bestScore || ($candidateScore === $bestScore && $distance < $bestDistance)) {
                         $bestScore = $candidateScore;
+                        $bestDistance = $distance;
                         $bestTemplates = [$template];
-                    } elseif ($candidateScore === $bestScore && count($bestTemplates) < 32) {
+                    } elseif ($candidateScore === $bestScore && $distance === $bestDistance && count($bestTemplates) < 32) {
                         $bestTemplates[] = $template;
                     }
                 }
@@ -351,6 +416,47 @@ final class ScheduleGenerationEngine
         return $result;
     }
 
+    /** @param list<array{day:int, period:int, department_code:string}> $template */
+    private function hasValidDailyDistribution(array $template, string $gradeLevel): bool
+    {
+        $bySubject = [];
+        foreach ($template as $entry) {
+            $bySubject[$entry['department_code']][$entry['day']][] = (int) $entry['period'];
+        }
+
+        foreach (SchedulePolicy::periodCounts($gradeLevel) as $code => $expectedCount) {
+            $days = $bySubject[$code] ?? [];
+            if (array_sum(array_map('count', $days)) !== $expectedCount) {
+                return false;
+            }
+
+            if (! SchedulePolicy::allowsDoubleBlock($gradeLevel, $code)) {
+                if (array_filter($days, fn (array $periods): bool => count($periods) > 1) !== []) {
+                    return false;
+                }
+
+                continue;
+            }
+
+            $shape = array_map('count', array_values($days));
+            sort($shape);
+            $expectedShape = SchedulePolicy::requiredDailyShape($gradeLevel, $code);
+            sort($expectedShape);
+            if ($shape !== $expectedShape) {
+                return false;
+            }
+
+            foreach ($days as $periods) {
+                sort($periods);
+                if (count($periods) === 2 && ! in_array($periods, SchedulePolicy::DOUBLE_BLOCKS, true)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     /** @return list<list<array{day:int, period:int, department_code:string}>> */
     private function blockMoveTemplates(array $template, string $gradeLevel): array
     {
@@ -393,6 +499,7 @@ final class ScheduleGenerationEngine
                         ];
                         $result[] = $candidate;
                     }
+
                     continue;
                 }
 
@@ -467,7 +574,7 @@ final class ScheduleGenerationEngine
     }
 
     /** @param list<array{day:int, period:int, department_code:string}> $template
-     *  @param list<string> $mutableCodes
+     * @param  list<string>  $mutableCodes
      */
     private function mutateBlockPlacement(array &$template, string $gradeLevel, array $mutableCodes, Randomizer $random): void
     {
@@ -570,12 +677,13 @@ final class ScheduleGenerationEngine
     }
 
     /**
-     * @param array<int, array<int, array<int, array<int, bool>>>> $slots
-     * @param array<string, bool> $availability
+     * @param  array<int, array<int, array<int, array<int, bool>>>>  $slots
+     * @param  array<string, bool>  $availability
      * @return array{int, list<int>}
      */
     private function statePenalty(array $slots, array $availability): array
     {
+        $this->reportProgress();
         $score = 0;
         $conflicted = [];
 
@@ -663,7 +771,7 @@ final class ScheduleGenerationEngine
     }
 
     /**
-     * @param array<string, list<list<array{day:int, period:int, department_code:string}>>> $pools
+     * @param  array<string, list<list<array{day:int, period:int, department_code:string}>>>  $pools
      */
     private function extendTemplatePools(array &$pools, int $seed, int $additionalPerGrade): void
     {
@@ -689,12 +797,12 @@ final class ScheduleGenerationEngine
     }
 
     /**
-     * @param list<array{id:int, grade_level:string, name:string, assignments:array<string, array{department_id:int, teacher_id:int}>}> $sections
-     * @param list<int> $remaining
-     * @param array<string, list<list<array{day:int, period:int, department_code:string}>>> $templatePools
-     * @param array<string, bool> $availability
-     * @param array<int, array<int, array<int, bool>>> $teacherSlots
-     * @param list<array<string, int|string>> $entries
+     * @param  list<array{id:int, grade_level:string, name:string, assignments:array<string, array{department_id:int, teacher_id:int}>}>  $sections
+     * @param  list<int>  $remaining
+     * @param  array<string, list<list<array{day:int, period:int, department_code:string}>>>  $templatePools
+     * @param  array<string, bool>  $availability
+     * @param  array<int, array<int, array<int, bool>>>  $teacherSlots
+     * @param  list<array<string, int|string>>  $entries
      * @return list<array<string, int|string>>|null
      */
     private function search(
@@ -709,6 +817,7 @@ final class ScheduleGenerationEngine
         int &$checks,
         int $seed,
     ): ?array {
+        $this->reportProgress();
         if ($remaining === []) {
             return $entries;
         }
@@ -793,9 +902,9 @@ final class ScheduleGenerationEngine
     }
 
     /**
-     * @param list<list<array{day:int, period:int, department_code:string}>> $pool
-     * @param array<int, array<int, array<int, bool>>> $occupied
-     * @param array<string, bool> $availability
+     * @param  list<list<array{day:int, period:int, department_code:string}>>  $pool
+     * @param  array<int, array<int, array<int, bool>>>  $occupied
+     * @param  array<string, bool>  $availability
      * @return list<list<array{day:int, period:int, department_code:string}>>
      */
     private function candidateTemplates(
@@ -865,7 +974,7 @@ final class ScheduleGenerationEngine
     }
 
     /**
-     * @param list<array{id:int, grade_level:string, name:string, assignments:array<string, array{department_id:int, teacher_id:int}>}> $sections
+     * @param  list<array{id:int, grade_level:string, name:string, assignments:array<string, array{department_id:int, teacher_id:int}>}>  $sections
      * @return array<string, list<list<array{day:int, period:int, department_code:string}>>>
      */
     private function buildTemplatePools(array $sections, int $seed, float $deadline): array
@@ -922,7 +1031,7 @@ final class ScheduleGenerationEngine
     }
 
     /** @param list<array<string, int|string>> $entries
-     *  @param array<int, array<int, array<int, bool>>> $occupied
+     * @param  array<int, array<int, array<int, bool>>>  $occupied
      */
     private function occupy(array $entries, array &$occupied): void
     {
@@ -932,7 +1041,7 @@ final class ScheduleGenerationEngine
     }
 
     /** @param list<array<string, int|string>> $entries
-     *  @param array<int, array<int, array<int, bool>>> $occupied
+     * @param  array<int, array<int, array<int, bool>>>  $occupied
      */
     private function release(array $entries, array &$occupied): void
     {
@@ -952,21 +1061,89 @@ final class ScheduleGenerationEngine
         }
     }
 
-    private function assertTeacherLoadsCanFit(array $sections): void
+    private function assertTeacherLoadsCanFit(array $sections, array $availability): void
     {
         $loads = [];
+        $dailyRequired = [];
+        $requiredBlocks = [];
         foreach ($sections as $section) {
             foreach (SchedulePolicy::periodCounts($section['grade_level']) as $code => $periods) {
                 $teacherId = (int) $section['assignments'][$code]['teacher_id'];
                 $loads[$teacherId] = ($loads[$teacherId] ?? 0) + $periods;
+                if ($periods === 5 && ! SchedulePolicy::allowsDoubleBlock($section['grade_level'], $code)) {
+                    $dailyRequired[$teacherId] = ($dailyRequired[$teacherId] ?? 0) + 1;
+                }
+                if (SchedulePolicy::allowsDoubleBlock($section['grade_level'], $code)) {
+                    $requiredBlocks[$teacherId] = ($requiredBlocks[$teacherId] ?? 0)
+                        + count(array_filter(SchedulePolicy::requiredDailyShape($section['grade_level'], $code), fn (int $count): bool => $count === 2));
+                }
             }
         }
 
         foreach ($loads as $teacherId => $periods) {
-            if ($periods > 25) {
-                throw new ScheduleSearchExhaustedException(
-                    "Teacher {$teacherId} requires {$periods} periods, exceeding the maximum compatible with the teacher-break rule. No draft was created."
-                );
+            $capacity = 0;
+            $blockCapacity = 0;
+            for ($day = 1; $day <= SchedulePolicy::DAYS; $day++) {
+                $dailyCapacity = 0;
+                $dailyBlockCapacity = 0;
+                for ($mask = 0; $mask < 128; $mask++) {
+                    $occupied = [];
+                    for ($period = 1; $period <= SchedulePolicy::PERIODS_PER_DAY; $period++) {
+                        if (($mask & (1 << ($period - 1))) !== 0) {
+                            if (isset($availability[$teacherId.':'.$day.':'.$period])) {
+                                continue 2;
+                            }
+                            $occupied[$period] = true;
+                        }
+                    }
+                    if (! $this->hasBreakViolation($occupied)) {
+                        $dailyCapacity = max($dailyCapacity, count($occupied));
+                        $blocks = 0;
+                        foreach (SchedulePolicy::DOUBLE_BLOCKS as [$left, $right]) {
+                            $blocks += (int) isset($occupied[$left], $occupied[$right]);
+                        }
+                        $dailyBlockCapacity = max($dailyBlockCapacity, $blocks);
+                    }
+                }
+                if ($dailyCapacity < ($dailyRequired[$teacherId] ?? 0)) {
+                    throw new ScheduleInfeasibleException("Scheduling cannot fit: teacher {$teacherId} does not have enough available periods on Day {$day} for the subjects required every day. Review teacher availability or assignments.");
+                }
+                $capacity += $dailyCapacity;
+                $blockCapacity += $dailyBlockCapacity;
+            }
+            if ($periods > $capacity) {
+                throw new ScheduleInfeasibleException("Scheduling cannot fit: teacher {$teacherId} needs {$periods} periods, but only {$capacity} fit the availability and teacher-break rules. Review teacher availability or assignments.");
+            }
+            if (($requiredBlocks[$teacherId] ?? 0) > $blockCapacity) {
+                throw new ScheduleInfeasibleException("Scheduling cannot fit: teacher {$teacherId} does not have enough available consecutive periods for the required double classes. Review teacher availability or assignments.");
+            }
+        }
+
+        foreach ($sections as $section) {
+            $dailyCodes = array_values(array_filter(array_keys(SchedulePolicy::periodCounts($section['grade_level'])),
+                fn (string $code): bool => SchedulePolicy::periodCounts($section['grade_level'])[$code] === 5
+                    && ! SchedulePolicy::allowsDoubleBlock($section['grade_level'], $code)));
+            for ($day = 1; $day <= 5; $day++) {
+                // Necessary matching check: daily subjects must have distinct class slots.
+                for ($subset = 1; $subset < (1 << count($dailyCodes)); $subset++) {
+                    $allowed = [];
+                    $needed = 0;
+                    foreach ($dailyCodes as $bit => $code) {
+                        if (($subset & (1 << $bit)) === 0) {
+                            continue;
+                        }
+                        $needed++;
+                        $teacher = $section['assignments'][$code]['teacher_id'];
+                        for ($period = 1; $period <= 7; $period++) {
+                            if (! isset($availability[$teacher.':'.$day.':'.$period])) {
+                                $allowed[$period] = true;
+                            }
+                        }
+                    }
+                    if (count($allowed) < $needed) {
+                        throw new ScheduleInfeasibleException("Scheduling cannot fit: {$section['name']} has daily subjects that cannot fit into separate available periods on Day {$day}. Review teacher availability or assignments.");
+                    }
+                }
             }
         }
     }
@@ -1029,4 +1206,82 @@ final class ScheduleGenerationEngine
             + (int) isset($periods[3], $periods[4], $periods[5]);
     }
 
+    private function reportProgress(): void
+    {
+        $now = microtime(true);
+        if ($this->progress && $now - $this->lastProgress >= 2) {
+            $this->lastProgress = $now;
+            if (($this->progress)(min(99, (int) floor(($now - $this->searchStarted) / $this->searchSeconds * 100))) === false) {
+                throw new ScheduleGenerationStoppedException('Generation was stopped.');
+            }
+        }
+    }
+
+    private function startingTemplates(array $sections, array $entries): array
+    {
+        $bySection = [];
+        foreach ($entries as $entry) {
+            if (isset($entry['section_id'], $entry['department_code'], $entry['day'], $entry['period'])
+                && $entry['day'] >= 1 && $entry['day'] <= 5 && $entry['period'] >= 1 && $entry['period'] <= 7) {
+                $bySection[$entry['section_id']][$entry['day'].':'.$entry['period']] = [
+                    'day' => (int) $entry['day'], 'period' => (int) $entry['period'],
+                    'department_code' => $entry['department_code'],
+                ];
+            }
+        }
+        $templates = [];
+        foreach ($sections as $index => $section) {
+            $template = array_values($bySection[$section['id']] ?? []);
+            if (count($template) !== 35 || ! $this->hasValidDailyDistribution($template, $section['grade_level'])
+                || array_diff(array_column($template, 'department_code'), array_keys($section['assignments'])) !== []) {
+                continue;
+            }
+            usort($template, fn (array $a, array $b): int => [$a['day'], $a['period']] <=> [$b['day'], $b['period']]);
+            $templates[$index] = $template;
+        }
+
+        return $templates;
+    }
+
+    private function repairDayReversals(array $sections, array &$assigned, array &$slots, array $availability, int $score): void
+    {
+        for ($day = 1; $day <= 5; $day++) {
+            $bestScore = $score;
+            $bestAssigned = null;
+            $bestSlots = null;
+            for ($mask = 1; $mask < 8; $mask++) {
+                $permutation = [];
+                foreach ([[1, 2], [3, 5], [6, 7]] as $bit => [$left, $right]) {
+                    if (($mask & (1 << $bit)) !== 0) {
+                        $permutation[$left] = $right;
+                        $permutation[$right] = $left;
+                    }
+                }
+                $candidate = $assigned;
+                $candidateSlots = [];
+                foreach ($candidate as $index => &$template) {
+                    foreach ($template as &$entry) {
+                        if ($entry['day'] === $day) {
+                            $entry['period'] = $permutation[$entry['period']] ?? $entry['period'];
+                        }
+                    }
+                    unset($entry);
+                    usort($template, fn (array $a, array $b): int => [$a['day'], $a['period']] <=> [$b['day'], $b['period']]);
+                    $this->addTemplateToState($index, $sections[$index], $template, $candidateSlots);
+                }
+                unset($template);
+                [$candidateScore] = $this->statePenalty($candidateSlots, $availability);
+                if ($candidateScore < $bestScore) {
+                    $bestScore = $candidateScore;
+                    $bestAssigned = $candidate;
+                    $bestSlots = $candidateSlots;
+                }
+            }
+            if ($bestAssigned !== null) {
+                $assigned = $bestAssigned;
+                $slots = $bestSlots;
+                $score = $bestScore;
+            }
+        }
+    }
 }

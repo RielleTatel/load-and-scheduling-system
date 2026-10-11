@@ -2,18 +2,23 @@
 
 namespace App\Jobs;
 
-use App\Models\Section;
-use App\Models\TeacherSectionAssignment;
-use App\Models\TeacherUnavailability;
+use App\Enums\TimetableKind;
 use App\Models\TimetableVersion;
 use App\Services\Audit\AuditLogService;
-use App\Services\Scheduling\ScheduleGenerationEngine;
+use App\Services\Scheduling\ScheduleGenerationStoppedException;
+use App\Services\Scheduling\ScheduleInputsChangedException;
 use App\Services\Scheduling\ScheduleReadinessService;
+use App\Services\Scheduling\ScheduleSearchExhaustedException;
+use App\Services\Scheduling\SpecialScheduleGenerator;
+use App\Services\Scheduling\TimetableGenerationInput;
+use App\Services\Scheduling\TimetableGenerationProgress;
+use App\Services\Scheduling\TimetableGenerator;
 use App\Services\Scheduling\TimetableValidationService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -24,67 +29,100 @@ class GenerateTimetable implements ShouldQueue
 
     public int $timeout = 120;
 
-    public int $tries = 1;
+    public int $tries = 3;
 
-    public function __construct(public readonly int $timetableVersionId) {}
+    public function __construct(public readonly int $timetableVersionId, public readonly int $round = 0) {}
+
+    public function middleware(): array
+    {
+        return [(new WithoutOverlapping('timetable:'.$this->timetableVersionId))->releaseAfter(5)->expireAfter(150)];
+    }
 
     public function handle(
-        ScheduleGenerationEngine $engine,
+        TimetableGenerator $engine,
         TimetableValidationService $validation,
         ScheduleReadinessService $readiness,
         AuditLogService $audit,
     ): void {
         $timetable = TimetableVersion::query()->find($this->timetableVersionId);
-        if (! $timetable || $timetable->status->value !== 'generating') {
+        if (! $timetable || $timetable->status->value !== 'generating'
+            || ($timetable->generation_checkpoint['round'] ?? 0) !== $this->round) {
             return;
         }
 
         try {
+            if ($timetable->kind === TimetableKind::Special) {
+                $engine = app(SpecialScheduleGenerator::class);
+            }
+            $progress = app(TimetableGenerationProgress::class);
+            $progress->record($timetable->id, 'Preparing your schedule');
             $ready = $readiness->check($timetable->school_year);
             if (! $ready['ready']) {
                 throw new \RuntimeException('Scheduling data is no longer ready: '.implode(' ', array_column($ready['blockers'], 'message')));
             }
 
-            $sections = Section::query()
-                ->where('school_year', $timetable->school_year)
-                ->orderBy('grade_level')->orderBy('name')->get();
-            $assignmentRows = TeacherSectionAssignment::query()
-                ->where('school_year', $timetable->school_year)
-                ->with(['teacher:id,department_id', 'department:id,code'])
-                ->get();
-            $assignments = [];
-            foreach ($assignmentRows as $assignment) {
-                if (! $assignment->teacher || ! $assignment->department) {
-                    continue;
-                }
-                $assignments[$assignment->section_id][$assignment->department->code] = [
-                    'department_id' => $assignment->department_id,
-                    'teacher_id' => $assignment->teacher_id,
-                ];
+            $inputLoader = app(TimetableGenerationInput::class);
+            $input = $inputLoader->load($timetable);
+            $starting = $inputLoader->startingEntries($timetable, $input['sections']);
+            $saved = $timetable->generation_checkpoint ?? [];
+            $checkpoint = [
+                'round' => $this->round,
+                'fingerprint' => $input['fingerprint'],
+                'entries' => ($saved['fingerprint'] ?? null) === $input['fingerprint']
+                    ? ($saved['entries'] ?? $starting['entries']) : $starting['entries'],
+                'penalty' => ($saved['fingerprint'] ?? null) === $input['fingerprint'] ? ($saved['penalty'] ?? null) : null,
+                'source_version_id' => $starting['source_version_id'],
+                'reference' => $starting['reference'],
+            ];
+            if (! $this->saveCheckpoint($checkpoint)) {
+                return;
             }
+            $progress->record($timetable->id, 'Arranging classes', $progress->checkPercent($input['sections'], $checkpoint['entries'], $input['unavailable'], $timetable->kind));
+            $lastCheckpointAt = 0;
 
-            $generatorSections = $sections->map(fn (Section $section) => [
-                'id' => $section->id,
-                'grade_level' => $section->grade_level->value,
-                'name' => $section->name,
-                'assignments' => $assignments[$section->id] ?? [],
-            ])->all();
+            // Each short work session yields to the queue, without a total search
+            // deadline. Saved progress survives worker restarts and laptop shutdowns.
+            $seed = (int) (($timetable->generation_seed + $this->round * 104729) % 2147483647);
+            $result = $engine->generate($input['sections'], $input['unavailable'], $seed, 45,
+                function () use ($progress, $timetable): bool {
+                    $current = $timetable->fresh();
+                    if (! $current || $current->status->value !== 'generating'
+                        || ($current->generation_checkpoint['round'] ?? 0) !== $this->round) {
+                        return false;
+                    }
+                    $progress->record($timetable->id, 'Arranging classes');
 
-            $unavailable = TeacherUnavailability::query()
-                ->where('school_year', $timetable->school_year)
-                ->where('quarter', $timetable->quarter)
-                ->get(['teacher_id', 'day', 'period'])
-                ->map(fn ($slot) => $slot->toArray())->all();
-
-            $result = $engine->generate($generatorSections, $unavailable, $timetable->generation_seed, 110);
+                    return true;
+                },
+                $checkpoint['entries'],
+                function (array $entries, int $penalty) use (&$checkpoint, &$lastCheckpointAt, $progress, $timetable, $input): void {
+                    if ($checkpoint['penalty'] === null || $penalty < $checkpoint['penalty']) {
+                        $checkpoint['entries'] = $entries;
+                        $checkpoint['penalty'] = $penalty;
+                        if (microtime(true) - $lastCheckpointAt >= 3 || $penalty === 0) {
+                            $lastCheckpointAt = microtime(true);
+                            if (! $this->saveCheckpoint($checkpoint)) {
+                                throw new ScheduleGenerationStoppedException;
+                            }
+                            $progress->record($timetable->id, 'Arranging classes', $progress->checkPercent($input['sections'], $entries, $input['unavailable'], $timetable->kind));
+                        }
+                    }
+                },
+                $starting['fallback_entries'],
+            );
             if ($result['issues'] !== []) {
                 throw new \RuntimeException('The timetable search returned hard validation errors. No draft was created.');
             }
 
-            DB::transaction(function () use ($timetable, $result, $validation, $audit): void {
+            $progress->record($timetable->id, 'Checking and saving your schedule');
+            DB::transaction(function () use ($timetable, $result, $validation, $audit, $inputLoader, $input, $checkpoint): void {
                 $locked = TimetableVersion::query()->lockForUpdate()->findOrFail($timetable->id);
-                if ($locked->status->value !== 'generating') {
+                if ($locked->status->value !== 'generating'
+                    || ($locked->generation_checkpoint['round'] ?? 0) !== $this->round) {
                     return;
+                }
+                if ($inputLoader->load($locked)['fingerprint'] !== $input['fingerprint']) {
+                    throw new ScheduleInputsChangedException;
                 }
 
                 $now = now();
@@ -116,6 +154,7 @@ class GenerateTimetable implements ShouldQueue
                 TimetableVersion::query()
                     ->where('school_year', $locked->school_year)
                     ->where('quarter', $locked->quarter)
+                    ->where('kind', $locked->kind->value)
                     ->where('status', 'draft')
                     ->where('id', '<>', $locked->id)
                     ->update(['status' => 'superseded', 'updated_at' => $now]);
@@ -123,34 +162,91 @@ class GenerateTimetable implements ShouldQueue
                 $locked->status = 'draft';
                 $locked->completed_at = $now;
                 $locked->failure_message = null;
+                $locked->generation_checkpoint = null;
                 $locked->save();
                 $audit->log('timetable.generated', $locked, null, [
                     'school_year' => $locked->school_year,
                     'quarter' => $locked->quarter,
                     'version' => $locked->version,
+                    'kind' => $locked->kind->value,
                     'issues' => count($issues),
                     'attempts' => $result['attempts'],
                     'seed' => $locked->generation_seed,
+                    'search_sessions' => $this->round + 1,
+                    'reference' => $checkpoint['reference'],
+                    'source_version_id' => $checkpoint['source_version_id'],
+                    'used_existing_schedule_fallback' => $result['used_fallback'] ?? false,
                 ]);
             });
-        } catch (Throwable $exception) {
-            DB::transaction(function () use ($timetable, $exception, $audit): void {
-                $locked = TimetableVersion::query()->lockForUpdate()->find($timetable->id);
-                if (! $locked || $locked->status->value !== 'generating') {
+        } catch (ScheduleGenerationStoppedException) {
+            return;
+        } catch (ScheduleSearchExhaustedException|ScheduleInputsChangedException $exception) {
+            // Search exhaustion is not a failed schedule. Continue the same version.
+            DB::transaction(function () use ($exception): void {
+                $locked = TimetableVersion::query()->lockForUpdate()->find($this->timetableVersionId);
+                if (! $locked || $locked->status->value !== 'generating'
+                    || ($locked->generation_checkpoint['round'] ?? 0) !== $this->round) {
                     return;
                 }
-
-                $locked->status = 'failed';
-                $locked->completed_at = now();
-                $locked->failure_message = mb_substr($exception->getMessage(), 0, 2000);
+                $checkpoint = $locked->generation_checkpoint ?? [];
+                if ($exception instanceof ScheduleInputsChangedException) {
+                    $checkpoint = [];
+                } elseif ($exception->bestEntries !== [] && (! isset($checkpoint['penalty'])
+                    || ($exception->bestPenalty !== null && $exception->bestPenalty < $checkpoint['penalty']))) {
+                    $checkpoint['entries'] = $exception->bestEntries;
+                    $checkpoint['penalty'] = $exception->bestPenalty;
+                }
+                $checkpoint['round'] = $this->round + 1;
+                $locked->generation_checkpoint = $checkpoint;
                 $locked->save();
-                $audit->log('timetable.generation_failed', $locked, null, [
-                    'school_year' => $locked->school_year,
-                    'quarter' => $locked->quarter,
-                    'version' => $locked->version,
-                    'message' => $locked->failure_message,
-                ]);
+                self::dispatch($locked->id, $this->round + 1)->delay(now()->addSecond())->afterCommit();
+                app(TimetableGenerationProgress::class)->record($locked->id, 'Continuing to arrange classes');
             });
+        } catch (Throwable $exception) {
+            $this->failGeneration($exception, $audit);
         }
+    }
+
+    private function saveCheckpoint(array $checkpoint): bool
+    {
+        return DB::transaction(function () use ($checkpoint): bool {
+            $locked = TimetableVersion::query()->lockForUpdate()->find($this->timetableVersionId);
+            if (! $locked || $locked->status->value !== 'generating'
+                || ($locked->generation_checkpoint['round'] ?? 0) !== $this->round) {
+                return false;
+            }
+            $locked->generation_checkpoint = $checkpoint;
+            $locked->save();
+
+            return true;
+        });
+    }
+
+    public function failed(?Throwable $exception): void
+    {
+        $this->failGeneration($exception ?? new \RuntimeException('The background process was interrupted.'), app(AuditLogService::class));
+    }
+
+    private function failGeneration(Throwable $exception, AuditLogService $audit): void
+    {
+        DB::transaction(function () use ($exception, $audit): void {
+            $locked = TimetableVersion::query()->lockForUpdate()->find($this->timetableVersionId);
+            if (! $locked || $locked->status->value !== 'generating'
+                || ($locked->generation_checkpoint['round'] ?? 0) !== $this->round) {
+                return;
+            }
+
+            $locked->status = 'failed';
+            $locked->completed_at = now();
+            $locked->failure_message = mb_substr($exception->getMessage(), 0, 2000);
+            $locked->generation_checkpoint = null;
+            $locked->save();
+            $audit->log('timetable.generation_failed', $locked, null, [
+                'school_year' => $locked->school_year,
+                'quarter' => $locked->quarter,
+                'version' => $locked->version,
+                'message' => $locked->failure_message,
+            ]);
+        });
     }
 }

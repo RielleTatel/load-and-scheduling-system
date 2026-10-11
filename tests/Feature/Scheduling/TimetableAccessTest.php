@@ -3,15 +3,16 @@
 namespace Tests\Feature\Scheduling;
 
 use App\Enums\TimetableStatus;
-use App\Models\SystemConstant;
-use App\Models\TimetableVersion;
-use App\Models\User;
+use App\Enums\TimetableKind;
 use App\Models\Department;
 use App\Models\Section;
+use App\Models\SystemConstant;
 use App\Models\Teacher;
+use App\Models\TimetableVersion;
+use App\Models\User;
 use App\Services\Scheduling\TimetablePresentationService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Tests\TestCase;
 
@@ -23,6 +24,40 @@ class TimetableAccessTest extends TestCase
     {
         parent::setUp();
         $this->withoutMiddleware(EncryptCookies::class);
+    }
+
+    public function test_kind_filters_separate_normal_and_special_for_admin_and_chairs(): void
+    {
+        [$admin, $normal] = $this->draftWithSingleEnglishEntry();
+        $normal->update(['status' => TimetableStatus::Approved]);
+        $special = TimetableVersion::create(['school_year' => $normal->school_year, 'quarter' => 1, 'version' => 2,
+            'kind' => TimetableKind::Special, 'status' => TimetableStatus::Approved, 'created_by_user_id' => $admin->id, 'generation_seed' => 73]);
+        $this->actingAs($admin)->get(route('admin.schedules.index').'?kind=special')->assertOk()
+            ->assertSee('Special timetables')->assertSee('v2')->assertDontSee('>v1<', false);
+        $chair = User::where('email', 'chair.fil@jhs.test')->firstOrFail();
+        $this->actingAs($chair)->get(route('chair.schedules.index'))->assertOk()->assertSee('Approved normal timetable')->assertSee('v1');
+        $this->actingAs($chair)->get(route('chair.schedules.index').'?kind=special')->assertOk()->assertSee('Approved special timetable')->assertSee('v2');
+        $this->actingAs($chair)->get(route('chair.schedules.show', $special))->assertOk()->assertSee('Special timetable');
+        foreach (['pdf', 'xlsx'] as $format) {
+            $this->get(route('chair.schedules.export', ['timetable' => $special, 'format' => $format]))->assertOk();
+        }
+        $this->post(route('admin.schedules.generate'), ['quarter' => 1, 'kind' => 'special'])->assertForbidden();
+    }
+
+    public function test_schedule_kind_is_validated_on_generation_requests(): void
+    {
+        $this->seed();
+        $admin = User::where('email', 'admin@jhs.test')->firstOrFail();
+        $this->actingAs($admin)->post(route('admin.schedules.generate'), ['quarter' => 1, 'kind' => 'unknown'])->assertSessionHasErrors('kind');
+        $this->assertDatabaseCount('timetable_versions', 0);
+    }
+
+    public function test_scheduling_pages_opt_into_branded_dropdowns_without_replacing_native_form_fields(): void
+    {
+        [$admin, $draft] = $this->draftWithSingleEnglishEntry();
+        $this->actingAs($admin)->get(route('admin.schedules.index'))->assertOk()->assertSee('data-branded-dropdowns', false)->assertSee('name="kind"', false);
+        $this->get(route('admin.schedules.show', $draft))->assertOk()->assertSee('data-branded-dropdowns', false)
+            ->assertSee('name="grade"', false)->assertSee('name="day"', false)->assertSee('x-model="subjectCode"', false);
     }
 
     public function test_admin_can_open_schedule_management_and_generation_is_gated_by_readiness(): void
@@ -67,9 +102,31 @@ class TimetableAccessTest extends TestCase
             ->assertOk()->assertSee('Admin editing')->assertSee('English')->assertSee('Undo last edit');
     }
 
+    public function test_opening_an_admin_draft_refreshes_its_stored_validation_issues(): void
+    {
+        [$admin, $draft] = $this->draftWithSingleEnglishEntry();
+
+        $this->assertDatabaseMissing('timetable_validation_issues', [
+            'timetable_version_id' => $draft->id,
+        ]);
+
+        $this->actingAs($admin)->get(route('admin.schedules.show', $draft))->assertOk();
+
+        $this->assertDatabaseHas('timetable_validation_issues', [
+            'timetable_version_id' => $draft->id,
+            'code' => 'missing_cell',
+        ]);
+    }
+
     public function test_schedule_grid_uses_the_workbook_structure_and_full_subject_names(): void
     {
         [$admin, $draft, $section] = $this->draftWithSingleEnglishEntry();
+        $science = Department::where('code', 'SCI')->firstOrFail();
+        Teacher::create([
+            'full_name' => 'Science Display Teacher',
+            'department_id' => $science->id,
+            'source' => 'test',
+        ]);
 
         $response = $this->actingAs($admin)->get(route('admin.schedules.show', $draft));
         $response->assertOk();
@@ -86,6 +143,10 @@ class TimetableAccessTest extends TestCase
         $this->assertStringContainsString('CLASSROOM CLEAN-UP (CC)', $html);
         $this->assertStringContainsString('REMEDIATION (Science)', $html);
         $this->assertStringContainsString('English', $html);
+        $this->assertStringContainsString('>Science</option>', $html);
+        $this->assertStringNotContainsString('Science and Technology', $html);
+        $this->assertStringContainsString('data-schedule-cell', $html);
+        $this->assertStringContainsString('data-schedule-card', $html);
 
         $grid = strstr($html, 'data-timetable-grid');
         $this->assertIsString($grid);
@@ -116,6 +177,44 @@ class TimetableAccessTest extends TestCase
             && strpos($html, 'data-grade-schedule="G8"') < strpos($html, 'data-grade-schedule="G9"')
             && strpos($html, 'data-grade-schedule="G9"') < strpos($html, 'data-grade-schedule="G10"'),
         );
+    }
+
+    public function test_all_days_are_shown_in_order_inside_each_grade_schedule(): void
+    {
+        [$admin, $draft] = $this->draftWithSingleEnglishEntry();
+
+        $html = $this->actingAs($admin)
+            ->get(route('admin.schedules.show', $draft).'?grade=G7&day=all')
+            ->assertOk()->getContent();
+
+        $this->assertStringContainsString('<option value="all" selected>All days</option>', $html);
+        $this->assertSame(1, substr_count($html, 'data-grade-schedule="G7"'));
+        $this->assertSame(5, substr_count($html, 'data-day-schedule='));
+        foreach (range(1, 5) as $day) {
+            $this->assertStringContainsString('data-day-schedule="'.$day.'"', $html);
+            $this->assertStringContainsString('>DAY '.$day.'<', $html);
+        }
+        $this->assertTrue(
+            strpos($html, 'data-day-schedule="1"') < strpos($html, 'data-day-schedule="2"')
+            && strpos($html, 'data-day-schedule="2"') < strpos($html, 'data-day-schedule="3"')
+            && strpos($html, 'data-day-schedule="3"') < strpos($html, 'data-day-schedule="4"')
+            && strpos($html, 'data-day-schedule="4"') < strpos($html, 'data-day-schedule="5"'),
+        );
+    }
+
+    public function test_all_grades_with_all_days_render_five_days_inside_each_grade(): void
+    {
+        [$admin, $draft] = $this->draftWithSingleEnglishEntry();
+
+        $html = $this->actingAs($admin)
+            ->get(route('admin.schedules.show', $draft).'?grade=all&day=all')
+            ->assertOk()->getContent();
+
+        $this->assertSame(4, substr_count($html, 'data-grade-schedule='));
+        $this->assertSame(20, substr_count($html, 'data-day-schedule='));
+        foreach (range(1, 5) as $day) {
+            $this->assertSame(4, substr_count($html, 'data-day-schedule="'.$day.'"'));
+        }
     }
 
     public function test_section_and_empty_department_filters_keep_the_owner_grade_structure(): void
@@ -195,6 +294,23 @@ class TimetableAccessTest extends TestCase
 
         $this->assertSame(['G7', 'G10'], array_keys($data['gradeGroups']));
         $this->assertSame(['G7', 'G10'], $data['sectionOptions']->map(fn (Section $section) => $section->grade_level->value)->all());
+    }
+
+    public function test_selected_section_takes_precedence_over_a_different_grade_filter(): void
+    {
+        [$admin, $draft] = $this->draftWithSingleEnglishEntry();
+        $gradeEight = Section::where('school_year', $draft->school_year)->where('grade_level', 'G8')->firstOrFail();
+        $data = app(TimetablePresentationService::class)->prepare($draft, Request::create('/schedule', 'GET', ['grade' => 'G7', 'section_id' => $gradeEight->id]));
+        $this->assertSame([$gradeEight->id], $data['sections']->pluck('id')->all());
+        $this->assertSame('G8', $data['filters']['grade']);
+    }
+
+    public function test_special_editing_has_no_target_day_control(): void
+    {
+        [$admin, $draft] = $this->draftWithSingleEnglishEntry();
+        $draft->update(['kind' => TimetableKind::Special]);
+        $this->actingAs($admin)->get(route('admin.schedules.show', $draft))->assertOk()
+            ->assertSee('Target period')->assertDontSee('Target day');
     }
 
     private function draftWithSingleEnglishEntry(): array

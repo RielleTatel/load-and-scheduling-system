@@ -7,6 +7,7 @@
         ? [
             'System' => [
                 ['label' => 'Dashboard', 'route' => 'admin.dashboard'],
+                ['label' => 'Schedules', 'route' => 'admin.schedules.index'],
                 ['label' => 'Users', 'route' => 'admin.users.index'],
                 ['label' => 'System constants', 'route' => 'admin.constants.index'],
                 ['label' => 'Assignment roles', 'route' => 'admin.roles.index'],
@@ -23,6 +24,7 @@
         : [
             'Department' => [
                 ['label' => 'Dashboard', 'route' => 'chair.dashboard'],
+                ['label' => 'Approved schedule', 'route' => 'chair.schedules.index'],
                 ['label' => 'Upload plantilla', 'route' => 'chair.plantilla.create'],
                 ['label' => 'Review & correct', 'route' => 'chair.plantilla.review'],
                 ['label' => 'Teacher roster', 'route' => 'chair.teachers.index'],

@@ -1,5 +1,21 @@
 # JHS Teaching Load & Scheduling System — Software Requirements Specification
 
+## Current scheduling addendum (2026-10-02)
+
+The current scheduling requirements are maintained in [Scheduling Feature](Scheduling%20Feature.md), which supersedes this historical draft's scheduling permissions, engine output, publication workflow, and period-level scope. Import/submission/load requirements remain separate and unchanged by the scheduling addition.
+
+| Scheduling action | System Admin | Department Chair | Academic Coordinator |
+| --- | --- | --- | --- |
+| Generate normal or special review timetable | Yes | No | No new permission |
+| Edit/undo draft periods, manage unavailable times, stop generation | Yes | No | No new permission |
+| Approve/publish after fresh hard-rule and input-readiness checks | Yes | No | No new permission |
+| View/export private drafts | Yes | No | No new permission |
+| View/export approved current-year timetable | Yes | Yes; own department by default, whole-school option | No new permission |
+
+The current feature models actual Day 1–5 class periods, not merely consolidated teaching loads. Normal and special timetables are independently published per school year/quarter/kind. Existing load-editor roles and any offline Principal review are not rewritten by this application-level publication workflow. A real English plantilla is still pending; fabricated testing files are not official submissions. Meeting, facility capacity, and remediation-duty automation remain deferred, not silently assumed complete.
+
+The remainder is retained as the August requirements history; its contradictory scheduling statements are not the current permission or implementation specification.
+
 Status: **Draft v0.2**, derived from the plantilla data analysis in [[JHS Scheduling Constraints]] and the department/section directories, plus the workflow description supplied by the project owner (2026-08-04). Scope is JHS only, per the existing prioritization decision.
 
 **v0.2 change (2026-08-04):** Role set finalized to exactly three system roles — System Administrator, Department Chair, Academic Coordinator. The Teacher role and Principal/Approver role proposed in v0.1 are removed. The Principal is explicitly **not a system user**; approval happens outside the system entirely, after the Academic Coordinator generates and exports the final schedule as a report. See §3 and §4 for the revised model.

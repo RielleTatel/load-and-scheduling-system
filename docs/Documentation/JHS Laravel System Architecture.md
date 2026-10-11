@@ -1,5 +1,25 @@
 # JHS Teaching Load & Scheduling System — Laravel Architecture
 
+## Implemented scheduling architecture (2026-10-02)
+
+See [Scheduling Feature](Scheduling%20Feature.md) for the current contract. The earlier `schedules`/`schedule_items` sketches below describe a proposed load-consolidation system, not the actual period-level implementation. The addition does not repurpose Chair-owned `teacher_section_assignments` or change existing load calculations.
+
+| Component | Current responsibility |
+| --- | --- |
+| `timetable_versions` | School year, quarter, globally increasing version, Normal/Special kind, status, creator/approver, edit sequence, durable generation checkpoint |
+| `timetable_entries` | Section, department, current assigned teacher, Day 1–5, subject period (1–7 normal / 1–8 special); unique version/section/day/period |
+| `timetable_validation_issues` | Persisted hard errors, including refreshed source-data readiness and stale saved teacher assignments |
+| `timetable_changes` | Before/after edit snapshots and sequence for undo; special edits affect all five days together |
+| `teacher_unavailabilities` | Shared school-year/quarter teacher/day/period constraints; no guessed facility or meeting data |
+| `GenerateTimetable` | Queue job with short resumable work sessions, fresh validation before draft persistence, cancellation protection, same-kind draft superseding |
+| Normal / special generators | Normal workbook-guided constrained search / eight-slot bipartite review-day arrangement with availability-aware exact-search fallback |
+| Validation / lifecycle services | Current assignments, teacher department, submitted/locked plantillas, role-dependent caps, mode-specific period rules, separate same-kind publication |
+| Layout / presentation / export services | Shared bells/labels and grade/day structure for Blade, dependency-free landscape PDF, and OpenXML Excel |
+
+Admin routes are role-protected; Chair routes expose only Approved timetables for the current year. The new `kind` migration defaults existing versions to Normal and preserves their entries/history. Local development uses `composer run dev` (web, queue, Vite); Windows does not run Pail, which requires `pcntl`. MySQL must run independently. SQLite in-memory is used for automated tests.
+
+The historical architecture below remains a record of earlier proposals; statements excluding period timetabling, assigning generation to the Coordinator, or relying on a different report stack are superseded for this implemented feature.
+
 Companion to [[JHS System SRS]]. Stack: **Laravel (PHP) + Blade + a relational SQL database** (MySQL/MariaDB or PostgreSQL — either works, examples below use generic SQL types). Pattern: **Layered Architecture + Service Layer**, chosen deliberately over heavier patterns (CQRS, full DDD, Repository-per-aggregate) because the domain is small and well-understood (3 roles, 7 fixed departments, one school year at a time) and Laravel already gives you most of a layered architecture for free through Eloquent, Form Requests, Policies, and Jobs — fighting those conventions would add complexity, not reduce it.
 
 Role model assumed throughout: **System Administrator, Department Chair, Academic Coordinator** — exactly three, per [[JHS System SRS]] §3. No Principal account exists anywhere in this design; approval happens on a printed/exported report, outside the application entirely.

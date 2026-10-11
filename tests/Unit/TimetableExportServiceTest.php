@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Enums\GradeLevel;
+use App\Enums\TimetableKind;
 use App\Enums\TimetableStatus;
 use App\Models\Department;
 use App\Models\Section;
@@ -14,6 +15,37 @@ use PHPUnit\Framework\TestCase;
 
 class TimetableExportServiceTest extends TestCase
 {
+    public function test_special_exports_include_the_eighth_period_and_special_post_class_times(): void
+    {
+        [$timetable, $data] = $this->sample();
+        $timetable->kind = TimetableKind::Special;
+        $pdf = (new TimetableExportService)->pdf($timetable, $data);
+        $sheet = $this->unzipLocalFiles((new TimetableExportService)->xlsx($timetable, $data))['xl/worksheets/sheet1.xml'];
+        foreach (['3:00 - 3:50', '3:50 - 3:55', '3:55 - 4:10', 'DISMISSAL'] as $text) {
+            $this->assertStringContainsString($text, $pdf);
+            $this->assertStringContainsString($text, $sheet);
+        }
+        $this->assertStringContainsString('JHS SPECIAL TIMETABLE', $pdf);
+        $this->assertStringContainsString('JHS Special Timetable', $sheet);
+        $this->assertStringNotContainsString('REMEDIATION', $pdf);
+        $this->assertStringNotContainsString('REMEDIATION', $sheet);
+    }
+
+    public function test_special_dismissal_is_a_full_width_post_class_excel_row(): void
+    {
+        [$timetable, $data] = $this->sample();
+        $timetable->kind = TimetableKind::Special;
+        $secondSection = new Section(['grade_level' => GradeLevel::G7, 'name' => 'Arrowsmith']);
+        $secondSection->id = 2;
+        $data['sections']->push($secondSection);
+        $sheet = $this->unzipLocalFiles((new TimetableExportService)->xlsx($timetable, $data))['xl/worksheets/sheet1.xml'];
+        $this->assertSame(1, preg_match('/<row r="(\d+)"[^>]*>(?:(?!<\/row>).)*DISMISSAL(?:(?!<\/row>).)*<\/row>/', $sheet, $matches));
+        $rowNumber = $matches[1];
+        $this->assertStringContainsString('<mergeCell ref="B'.$rowNumber.':C'.$rowNumber.'"/>', $sheet);
+        $this->assertStringContainsString('ht="20"', $matches[0]);
+        $this->assertStringContainsString('s="7"', $matches[0]);
+    }
+
     public function test_pdf_export_is_a_landscape_pdf_and_marks_drafts(): void
     {
         [$timetable, $data] = $this->sample();
@@ -25,13 +57,16 @@ class TimetableExportServiceTest extends TestCase
         $this->assertStringContainsString('DRAFT - NOT APPROVED', $pdf);
         $this->assertStringContainsString('TIME', $pdf);
         $this->assertStringContainsString('7 - Ignatius', $pdf);
-        $this->assertStringContainsString('RECESS', $pdf);
-        $this->assertStringContainsString('LUNCH', $pdf);
+        $this->assertStringContainsString('(R) Tj', $pdf);
+        $this->assertStringContainsString('(L) Tj', $pdf);
+        $this->assertStringNotContainsString('Normal Day 1-5 timetable.', $pdf);
         $this->assertStringContainsString('EXAMEN', $pdf);
         $this->assertStringContainsString('CLASSROOM CLEAN-UP \(CC\)', $pdf);
         $this->assertStringContainsString('REMEDIATION \(Science\)', $pdf);
         $this->assertStringContainsString('English', $pdf);
         $this->assertStringContainsString('(MAPEH)', $pdf);
+        $this->assertStringContainsString('(Science)', $pdf);
+        $this->assertStringNotContainsString('(Science and Technology)', $pdf);
         $this->assertStringNotContainsString('Music, Arts, Physical', $pdf);
         $this->assertStringContainsString('Alexandria Catherine Longteacher-Surname', $pdf);
         $this->assertStringNotContainsString('(PERIOD)', $pdf);
@@ -66,6 +101,8 @@ class TimetableExportServiceTest extends TestCase
         $this->assertStringContainsString('REMEDIATION (Science)', $sheet);
         $this->assertStringContainsString('English', $sheet);
         $this->assertStringContainsString('MAPEH', $sheet);
+        $this->assertStringContainsString('Science', $sheet);
+        $this->assertStringNotContainsString('Science and Technology', $sheet);
         $this->assertStringNotContainsString('Music, Arts, Physical Education and Health', $sheet);
         $this->assertStringContainsString('<mergeCells', $sheet);
         $this->assertStringNotContainsString('Period / time', $sheet);
@@ -98,9 +135,16 @@ class TimetableExportServiceTest extends TestCase
         $mapehEntry->setRelation('department', $mapeh);
         $mapehEntry->setRelation('teacher', $mapehTeacher);
 
+        $science = new Department(['code' => 'SCI', 'name' => 'Science and Technology']);
+        $scienceTeacher = new Teacher(['full_name' => 'Science Teacher']);
+        $scienceEntry = new TimetableEntry(['section_id' => 1, 'day' => 1, 'period' => 3]);
+        $scienceEntry->setAttribute('id', 12);
+        $scienceEntry->setRelation('department', $science);
+        $scienceEntry->setRelation('teacher', $scienceTeacher);
+
         return [$timetable, [
             'sections' => collect([$section]),
-            'grid' => [1 => [1 => [1 => $entry, 2 => $mapehEntry]]],
+            'grid' => [1 => [1 => [1 => $entry, 2 => $mapehEntry, 3 => $scienceEntry]]],
             'days' => [1],
             'filters' => [
                 'grade' => 'G7', 'grade_only' => true, 'section_id' => null,

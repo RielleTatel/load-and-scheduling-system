@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin;
 use App\Http\Controllers\DepartmentChair;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleRedirectController;
+use App\Http\Controllers\Scheduling\TimetableController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -20,6 +21,20 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'role:system_admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [Admin\DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('schedules', [TimetableController::class, 'adminIndex'])->name('schedules.index');
+    Route::post('schedules/generate', [TimetableController::class, 'generate'])->name('schedules.generate');
+    Route::get('schedules/{timetable}', [TimetableController::class, 'adminShow'])->whereNumber('timetable')->name('schedules.show');
+    Route::get('schedules/{timetable}/progress', [TimetableController::class, 'progress'])->whereNumber('timetable')->name('schedules.progress');
+    Route::post('schedules/{timetable}/stop', [TimetableController::class, 'stop'])->whereNumber('timetable')->name('schedules.stop');
+    Route::post('schedules/{timetable}/approve', [TimetableController::class, 'approve'])->whereNumber('timetable')->name('schedules.approve');
+    Route::post('schedules/{timetable}/clone', [TimetableController::class, 'clone'])->whereNumber('timetable')->name('schedules.clone');
+    Route::put('schedules/{timetable}/entries/{entry}', [TimetableController::class, 'updateEntry'])->whereNumber('timetable')->whereNumber('entry')->name('schedules.entries.update');
+    Route::post('schedules/{timetable}/undo', [TimetableController::class, 'undo'])->whereNumber('timetable')->name('schedules.undo');
+    Route::post('schedules/{timetable}/unavailability', [TimetableController::class, 'addAvailability'])->whereNumber('timetable')->name('schedules.unavailability.store');
+    Route::delete('schedules/{timetable}/unavailability/{availability}', [TimetableController::class, 'deleteAvailability'])->whereNumber('timetable')->whereNumber('availability')->name('schedules.unavailability.destroy');
+    Route::get('schedules/{timetable}/export/{format}', [TimetableController::class, 'adminExport'])
+        ->whereNumber('timetable')->whereIn('format', ['pdf', 'xlsx'])->name('schedules.export');
 
     Route::get('users', [Admin\UserController::class, 'index'])->name('users.index');
     Route::get('users/create', [Admin\UserController::class, 'create'])->name('users.create');
@@ -64,6 +79,11 @@ Route::middleware(['auth', 'role:system_admin'])->prefix('admin')->name('admin.'
 
 Route::middleware(['auth', 'role:department_chair'])->prefix('chair')->name('chair.')->group(function () {
     Route::get('/', [DepartmentChair\DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('schedules', [TimetableController::class, 'chairIndex'])->name('schedules.index');
+    Route::get('schedules/{timetable}', [TimetableController::class, 'chairShow'])->whereNumber('timetable')->name('schedules.show');
+    Route::get('schedules/{timetable}/export/{format}', [TimetableController::class, 'chairExport'])
+        ->whereNumber('timetable')->whereIn('format', ['pdf', 'xlsx'])->name('schedules.export');
 
     Route::get('plantilla/upload', [DepartmentChair\PlantillaUploadController::class, 'create'])->name('plantilla.create');
     Route::post('plantilla', [DepartmentChair\PlantillaUploadController::class, 'store'])->name('plantilla.store');
