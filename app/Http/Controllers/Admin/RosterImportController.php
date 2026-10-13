@@ -91,6 +91,11 @@ class RosterImportController extends Controller
             return back()->with('warning', implode(' ', $result['errors']));
         }
 
+        if ($result['review']) {
+            return back()->with('warning', 'Nothing was imported yet: ' . count($result['review'])
+                . ' name(s) need an identity decision in the Teacher Directory. ' . implode(' ', $result['review']));
+        }
+
         return redirect()->route('admin.sections.index')
             ->with('status', "Imported {$result['imported']} sections for {$import->school_year}.");
     }

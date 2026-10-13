@@ -209,7 +209,9 @@ class PlantillaReviewServiceTest extends TestCase
 
     public function test_compound_first_name_still_matches_the_roster(): void
     {
-        // CLE writes "Marycris Asdali"; the roster has "Mary Cris Asdali".
+        // CLE writes "Marycris Asdali"; the roster has "Mary Cris Asdali". The
+        // spelling waits for an Admin once; after that the roster's moderator
+        // section is found as before.
         $this->seed();
         $chair = User::where('email', 'chair.fil@jhs.test')->first();
         $this->actingAs($chair);
@@ -220,7 +222,18 @@ class PlantillaReviewServiceTest extends TestCase
             'service_load' => '3', 'other_assignment' => null, 'flagged' => false,
         ]]);
 
-        app(PlantillaReviewService::class)->confirmImport($upload);
+        $result = app(PlantillaReviewService::class)->confirmImport($upload);
+
+        $this->assertSame(0, $result['imported']);
+        $this->assertStringContainsString('Mary Cris Asdali', implode(' ', $result['review']));
+        $this->assertNull(\App\Models\ClassModeratorAssignment::first(), 'nothing imports while the identity is open');
+
+        $case = \App\Models\TeacherIdentityCase::sole();
+        $registrar = Teacher::where('full_name', 'Mary Cris Asdali')->firstOrFail();
+        $reconciliation = app(\App\Services\Teachers\TeacherReconciliationService::class);
+        $reconciliation->resolve($case, \App\Enums\IdentityDecision::Same, $registrar->id, 'Chair confirmed.', $reconciliation->version($case), User::where('email', 'admin@jhs.test')->first());
+
+        app(PlantillaReviewService::class)->confirmImport($upload->fresh());
 
         $cm = \App\Models\ClassModeratorAssignment::first();
         $this->assertNotNull($cm);

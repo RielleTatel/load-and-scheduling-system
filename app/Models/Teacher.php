@@ -27,6 +27,18 @@ class Teacher extends Model
     {
         static::saving(function (self $teacher) {
             $teacher->normalized_name = self::normalize($teacher->full_name);
+
+            // A verification and a Chair's confirmation attest to one name and
+            // department. Changing either leaves them describing someone else.
+            if ($teacher->exists && $teacher->isDirty(['normalized_name', 'department_id'])) {
+                $teacher->chair_confirmed_at = null;
+                $teacher->chair_confirmed_by_user_id = null;
+                $teacher->chair_confirmation_note = null;
+
+                if ($teacher->verification_status === TeacherVerification::Verified && ! $teacher->isDirty('verification_status')) {
+                    $teacher->verification_status = TeacherVerification::Pending;
+                }
+            }
         });
     }
 

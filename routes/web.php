@@ -73,6 +73,17 @@ Route::middleware(['auth', 'role:system_admin'])->prefix('admin')->name('admin.'
     Route::post('teachers', [Admin\TeacherDirectoryController::class, 'store'])->name('teachers.store');
     Route::get('teachers/{teacher}/edit', [Admin\TeacherDirectoryController::class, 'edit'])->name('teachers.edit');
     Route::put('teachers/{teacher}', [Admin\TeacherDirectoryController::class, 'update'])->name('teachers.update');
+    Route::post('teachers/{teacher}/verify', [Admin\TeacherDirectoryController::class, 'verify'])->name('teachers.verify');
+    Route::get('teachers/{teacher}/merge', [Admin\TeacherMergeController::class, 'preview'])->name('teachers.merge.preview');
+    Route::post('teachers/{teacher}/merge', [Admin\TeacherMergeController::class, 'merge'])->name('teachers.merge');
+    Route::get('teacher-directory-sources/create', [Admin\DirectorySourceController::class, 'create'])->name('directory-sources.create');
+    Route::post('teacher-directory-sources', [Admin\DirectorySourceController::class, 'store'])->name('directory-sources.store');
+    Route::get('teacher-readiness', [Admin\TeacherReadinessController::class, 'index'])->name('teacher-readiness.index');
+
+    // Who a written name refers to, when no source can say for certain.
+    Route::get('identity-cases', [Admin\IdentityCaseController::class, 'index'])->name('identity-cases.index');
+    Route::get('identity-cases/{identityCase}', [Admin\IdentityCaseController::class, 'show'])->name('identity-cases.show');
+    Route::post('identity-cases/{identityCase}/resolve', [Admin\IdentityCaseController::class, 'resolve'])->name('identity-cases.resolve');
 
     Route::get('audit', [Admin\AuditLogController::class, 'index'])->name('audit.index');
 });
@@ -99,6 +110,8 @@ Route::middleware(['auth', 'role:department_chair'])->prefix('chair')->name('cha
     Route::post('teachers', [DepartmentChair\TeacherController::class, 'store'])->name('teachers.store');
     Route::get('teachers/{teacher}/edit', [DepartmentChair\TeacherController::class, 'edit'])->name('teachers.edit');
     Route::put('teachers/{teacher}', [DepartmentChair\TeacherController::class, 'update'])->name('teachers.update');
+    Route::post('teachers/{teacher}/confirm-identity', [DepartmentChair\TeacherController::class, 'confirmIdentity'])->name('teachers.confirm-identity');
+    Route::post('identity-cases/{identityCase}/context', [DepartmentChair\TeacherController::class, 'addCaseContext'])->name('identity-cases.context');
 
     Route::get('assignments', [DepartmentChair\SectionAssignmentController::class, 'index'])->name('assignments.index');
     Route::post('assignments', [DepartmentChair\SectionAssignmentController::class, 'store'])->name('assignments.store');

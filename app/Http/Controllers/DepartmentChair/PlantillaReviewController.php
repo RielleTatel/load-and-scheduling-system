@@ -24,6 +24,12 @@ class PlantillaReviewController extends Controller
 
         $result = $reviewService->confirmImport($upload);
 
+        if ($result['review']) {
+            return redirect()->route('chair.plantilla.review')->with('warning',
+                'Nothing was imported yet: ' . count($result['review']) . ' teacher name(s) need an Admin identity decision. '
+                . implode(' ', $result['review']));
+        }
+
         $message = "Imported {$result['imported']} teacher(s).";
         if (! empty($result['skipped'])) {
             // These are per-entry problems (an unmatched role, an unknown
