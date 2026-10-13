@@ -31,7 +31,7 @@ class SectionAssignmentController extends Controller
         $department = auth()->user()->department;
         $schoolYear = SystemConstant::get('current_school_year');
 
-        $teachers = Teacher::where('department_id', $department->id)->orderBy('full_name')->get();
+        $teachers = Teacher::active()->where('department_id', $department->id)->orderBy('full_name')->get();
         $sections = Section::orderBy('grade_level')->orderBy('name')->get()->groupBy(fn ($s) => $s->grade_level->value);
 
         $subjectBySection = TeacherSectionAssignment::where('department_id', $department->id)
@@ -142,7 +142,7 @@ class SectionAssignmentController extends Controller
 
     private function ownsTeacher(int $teacherId): bool
     {
-        return Teacher::where('id', $teacherId)
+        return Teacher::active()->where('id', $teacherId)
             ->where('department_id', auth()->user()->department_id)->exists();
     }
 }

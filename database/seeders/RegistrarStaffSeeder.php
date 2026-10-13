@@ -15,7 +15,7 @@ class RegistrarStaffSeeder extends Seeder
      *
      * They are created without a department: the registrar's list says who they
      * are, but only a department's plantilla says which department they belong
-     * to. TeacherResolver adopts these records when that sheet is imported, which
+     * to. the plantilla import links these records when that sheet is imported, which
      * is what stops a second row being created for the same person.
      *
      * Twelve of them have no plantilla row at all — they belong to the English

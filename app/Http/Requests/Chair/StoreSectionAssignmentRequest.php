@@ -18,7 +18,8 @@ class StoreSectionAssignmentRequest extends FormRequest
             // The teacher must belong to the requesting chair's own department.
             'teacher_id' => [
                 'required',
-                Rule::exists('teachers', 'id')->where('department_id', $this->user()->department_id),
+                // A merged record is history; its loads live on the survivor.
+                Rule::exists('teachers', 'id')->where('department_id', $this->user()->department_id)->whereNull('merged_into_teacher_id'),
             ],
             'section_id' => ['required', 'exists:sections,id'],
         ];

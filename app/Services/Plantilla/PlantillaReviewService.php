@@ -3,18 +3,22 @@
 namespace App\Services\Plantilla;
 
 use App\Enums\EmploymentStatus;
+use App\Enums\ExtractionRowStatus;
 use App\Models\ClassModeratorAssignment;
-use App\Models\Section;
 use App\Models\Department;
 use App\Models\HonorsClassAssignment;
 use App\Models\OtherAssignmentRole;
 use App\Models\PlantillaUpload;
+use App\Models\Section;
 use App\Models\ServiceLoad;
 use App\Models\SystemConstant;
 use App\Models\Teacher;
 use App\Models\TeacherOtherAssignment;
 use App\Models\TeacherSectionAssignment;
 use App\Services\Audit\AuditLogService;
+use App\Services\Teachers\IdentityChangedException;
+use App\Services\Teachers\IdentityObservation;
+use App\Services\Teachers\TeacherIdentityService;
 use Illuminate\Support\Facades\DB;
 
 class PlantillaReviewService
@@ -22,7 +26,7 @@ class PlantillaReviewService
     public function __construct(
         private AuditLogService $audit,
         private SectionResolver $resolver,
-        private TeacherResolver $teachers,
+        private TeacherIdentityService $identities,
     ) {}
 
     /**
@@ -30,65 +34,94 @@ class PlantillaReviewService
      * transaction. Rows that can't be imported cleanly are skipped with a
      * human-readable reason rather than aborting the whole import.
      *
-     * @return array{imported:int, skipped:array<int,string>}
+     * Every teacher name is matched first. If any needs an Admin's identity
+     * decision, nothing is imported: the batch stays staged and `review`
+     * lists what is waiting.
+     *
+     * @return array{imported:int, skipped:array<int,string>, review:array<int,string>}
      */
     public function confirmImport(PlantillaUpload $upload): array
     {
         $department = $upload->submission->department;
         $schoolYear = SystemConstant::get('current_school_year');
 
-        return DB::transaction(function () use ($upload, $department, $schoolYear) {
-            $imported = 0;
-            $skipped = [];
+        $observations = [];
+        foreach ($upload->rows as $row) {
+            $name = trim((string) ($row->row_json['teacher_name'] ?? ''));
+            if ($name !== '') {
+                $observations[$row->id] = new IdentityObservation(
+                    IdentityObservation::PLANTILLA,
+                    "plantilla_row:{$row->id}",
+                    $name,
+                    $department->id,
+                    "{$department->name} plantilla upload #{$upload->id} ({$upload->original_filename})",
+                    $schoolYear,
+                    $row->row_json['extracted_teacher_name'] ?? null,
+                );
+            }
+        }
 
-            foreach ($upload->rows as $row) {
-                $data = $row->row_json;
-                $name = trim((string) ($data['teacher_name'] ?? ''));
+        $outcomes = $this->identities->preflight($observations);
+        $review = collect($outcomes)->filter->needsReview()
+            ->map(fn ($outcome) => $this->identities->describe($outcome->case))->unique()->values()->all();
 
-                if ($name === '') {
-                    $skipped[] = 'A row with no teacher name was skipped.';
-                    continue;
-                }
+        if ($review !== []) {
+            return ['imported' => 0, 'skipped' => [], 'review' => $review];
+        }
 
-                // A missing or unreadable status is reported, but never costs the
-                // teacher their sections — Social Studies states none at all.
-                $status = EmploymentStatus::fromLabel((string) ($data['employment_status'] ?? ''));
-                if (! $status) {
-                    $written = trim((string) ($data['employment_status'] ?? ''));
-                    $skipped[] = $written === ''
-                        ? "{$name}: no employment status on the sheet — set it before submitting."
-                        : "{$name}: unrecognized employment status \"{$written}\" — set it before submitting.";
-                }
+        try {
+            return DB::transaction(fn () => $this->import($upload, $department, $schoolYear, $observations, $outcomes));
+        } catch (IdentityChangedException $e) {
+            return ['imported' => 0, 'skipped' => [], 'review' => [$e->getMessage()]];
+        }
+    }
 
-                // Resolve against the existing directory rather than matching the
-                // raw string: a corrected spelling used to create a second teacher
-                // and move the load onto it.
-                $resolved = $this->teachers->resolve($name, $department);
-                $teacher = $resolved->teacher;
+    private function import(PlantillaUpload $upload, Department $department, string $schoolYear, array $observations, array $outcomes): array
+    {
+        $imported = 0;
+        $skipped = [];
+        $teachers = $this->identities->commitAll($observations, $outcomes);
 
-                if ($resolved->reason) {
-                    $skipped[] = "{$name}: {$resolved->reason}";
-                }
+        foreach ($upload->rows as $row) {
+            $data = $row->row_json;
+            $name = trim((string) ($data['teacher_name'] ?? ''));
 
-                if ($status) {
-                    $teacher->update(['employment_status' => $status]);
-                }
+            if ($name === '') {
+                $skipped[] = 'A row with no teacher name was skipped.';
 
-                $skipped = array_merge($skipped, $this->importSections($teacher, $department, $schoolYear, $data['sections'] ?? null, $name));
-                $skipped = array_merge($skipped, $this->importModerator($teacher, $schoolYear, $data['cm'] ?? null, $name));
-                $skipped = array_merge($skipped, $this->importHonors($teacher, $department, $schoolYear, $data['hc'] ?? null, $name));
-                $this->importServiceLoad($teacher, $schoolYear, $data['service_load'] ?? null);
-                $skipped = array_merge($skipped, $this->importOtherAssignment($teacher, $schoolYear, $data['other_assignment'] ?? null, $name));
-
-                $row->update(['row_status' => \App\Enums\ExtractionRowStatus::Confirmed]);
-                $imported++;
+                continue;
             }
 
-            $upload->update(['extraction_status' => 'reviewed']);
-            $this->audit->log('plantilla.imported', $upload, after: ['imported' => $imported, 'skipped' => count($skipped)]);
+            // A missing or unreadable status is reported, but never costs the
+            // teacher their sections — Social Studies states none at all.
+            $status = EmploymentStatus::fromLabel((string) ($data['employment_status'] ?? ''));
+            if (! $status) {
+                $written = trim((string) ($data['employment_status'] ?? ''));
+                $skipped[] = $written === ''
+                    ? "{$name}: no employment status on the sheet — set it before submitting."
+                    : "{$name}: unrecognized employment status \"{$written}\" — set it before submitting.";
+            }
 
-            return ['imported' => $imported, 'skipped' => $skipped];
-        });
+            $teacher = $teachers[$row->id];
+
+            if ($status) {
+                $teacher->update(['employment_status' => $status]);
+            }
+
+            $skipped = array_merge($skipped, $this->importSections($teacher, $department, $schoolYear, $data['sections'] ?? null, $name));
+            $skipped = array_merge($skipped, $this->importModerator($teacher, $schoolYear, $data['cm'] ?? null, $name));
+            $skipped = array_merge($skipped, $this->importHonors($teacher, $department, $schoolYear, $data['hc'] ?? null, $name));
+            $this->importServiceLoad($teacher, $schoolYear, $data['service_load'] ?? null);
+            $skipped = array_merge($skipped, $this->importOtherAssignment($teacher, $schoolYear, $data['other_assignment'] ?? null, $name));
+
+            $row->update(['row_status' => ExtractionRowStatus::Confirmed]);
+            $imported++;
+        }
+
+        $upload->update(['extraction_status' => 'reviewed']);
+        $this->audit->log('plantilla.imported', $upload, after: ['imported' => $imported, 'skipped' => count($skipped)]);
+
+        return ['imported' => $imported, 'skipped' => $skipped, 'review' => []];
     }
 
     /**
@@ -113,7 +146,7 @@ class PlantillaReviewService
         $candidates[] = trim(preg_replace('/^G\s*(?:7|8|9|10)\s+/i', '', $value));
 
         foreach ($candidates as $candidate) {
-            $key = strtolower(trim(preg_replace('/\s+/', ' ', (string) $candidate), " .,"));
+            $key = strtolower(trim(preg_replace('/\s+/', ' ', (string) $candidate), ' .,'));
             if (isset($aliases[$key])) {
                 $role = OtherAssignmentRole::where('name', $aliases[$key])->first();
                 if ($role) {
@@ -123,7 +156,7 @@ class PlantillaReviewService
         }
 
         foreach ($candidates as $candidate) {
-            $candidate = trim(preg_replace('/\s+/', ' ', (string) $candidate), " .,");
+            $candidate = trim(preg_replace('/\s+/', ' ', (string) $candidate), ' .,');
             if ($candidate === '') {
                 continue;
             }
@@ -153,6 +186,7 @@ class PlantillaReviewService
         foreach ($this->resolver->resolveMany($sections) as $resolution) {
             if (! $resolution->isResolved()) {
                 $skipped[] = "{$name}: {$resolution->reason}";
+
                 continue;
             }
             TeacherSectionAssignment::updateOrCreate(
@@ -195,8 +229,8 @@ class PlantillaReviewService
 
         if ($rostered && $resolution->section->id !== $rostered->id) {
             return ["{$name}: the sheet names {$resolution->section->grade_level->value} {$resolution->section->name} "
-                . "as their moderated section, but the registrar roster says {$rostered->grade_level->value} {$rostered->name}. "
-                . 'The roster was used — confirm which is correct.'];
+                ."as their moderated section, but the registrar roster says {$rostered->grade_level->value} {$rostered->name}. "
+                .'The roster was used — confirm which is correct.'];
         }
 
         if (! $rostered) {
@@ -320,5 +354,4 @@ class PlantillaReviewService
 
         return [];
     }
-
 }

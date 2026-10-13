@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Plantilla;
+namespace App\Services\Teachers;
 
 enum NameMatch
 {

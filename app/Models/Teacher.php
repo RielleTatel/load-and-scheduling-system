@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Enums\EmploymentStatus;
+use App\Enums\TeacherVerification;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,12 +14,31 @@ class Teacher extends Model
 {
     use HasFactory;
 
+    // Verification, merge and ordinal fields are deliberately not fillable:
+    // only the identity services write them, so no request can approve an
+    // identity by posting a field.
     protected $fillable = ['full_name', 'normalized_name', 'employment_status', 'department_id', 'source'];
+
+    protected $attributes = [
+        'verification_status' => 'pending',
+    ];
 
     protected static function booted(): void
     {
         static::saving(function (self $teacher) {
             $teacher->normalized_name = self::normalize($teacher->full_name);
+
+            // A verification and a Chair's confirmation attest to one name and
+            // department. Changing either leaves them describing someone else.
+            if ($teacher->exists && $teacher->isDirty(['normalized_name', 'department_id'])) {
+                $teacher->chair_confirmed_at = null;
+                $teacher->chair_confirmed_by_user_id = null;
+                $teacher->chair_confirmation_note = null;
+
+                if ($teacher->verification_status === TeacherVerification::Verified && ! $teacher->isDirty('verification_status')) {
+                    $teacher->verification_status = TeacherVerification::Pending;
+                }
+            }
         });
     }
 
@@ -45,7 +66,62 @@ class Teacher extends Model
     {
         return [
             'employment_status' => EmploymentStatus::class,
+            'verification_status' => TeacherVerification::class,
+            'verified_at' => 'datetime',
+            'verification_evidence' => 'array',
+            'chair_confirmed_at' => 'datetime',
+            'merged_at' => 'datetime',
         ];
+    }
+
+    /** Teachers that have not been merged into another record. */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->whereNull('merged_into_teacher_id');
+    }
+
+    public function isMerged(): bool
+    {
+        return $this->merged_into_teacher_id !== null;
+    }
+
+    /** The record this one now lives on: itself unless it was merged away. */
+    public function survivor(): self
+    {
+        $teacher = $this;
+        $seen = [];
+
+        while ($teacher->merged_into_teacher_id && ! isset($seen[$teacher->id])) {
+            $seen[$teacher->id] = true;
+            $teacher = self::findOrFail($teacher->merged_into_teacher_id);
+        }
+
+        return $teacher;
+    }
+
+    public function mergedInto(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'merged_into_teacher_id');
+    }
+
+    public function verifiedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'verified_by_user_id');
+    }
+
+    public function chairConfirmedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'chair_confirmed_by_user_id');
+    }
+
+    public function aliases(): HasMany
+    {
+        return $this->hasMany(TeacherAlias::class);
+    }
+
+    public function observations(): HasMany
+    {
+        return $this->hasMany(TeacherObservation::class);
     }
 
     public function department(): BelongsTo

@@ -44,10 +44,59 @@
                 <x-input-error :messages="$errors->get('employment_status')" class="field-error" />
             </div>
 
+            <label class="flex items-center gap-2 text-[13.5px]">
+                <input type="checkbox" name="confirm_distinct" value="1" @checked(old('confirm_distinct'))>
+                This is a different person from any similarly named teacher
+            </label>
+
+            @if ($editing)
+                <p class="field-help">Changing the name or department returns a verified teacher to pending verification.</p>
+            @endif
+
             <div class="flex gap-2 pt-2">
                 <button type="submit" class="btn-primary">{{ $editing ? 'Save changes' : 'Add teacher' }}</button>
                 <a href="{{ route('admin.teachers.index') }}" class="btn-ghost">Cancel</a>
             </div>
         </form>
     </div>
+
+    @if ($editing)
+        <div class="card p-6 max-w-xl mt-5">
+            <p class="font-bold text-[14px] mb-2">Identity verification &mdash; {{ $teacher->verification_status->label() }}</p>
+
+            @if ($teacher->verified_at)
+                <p class="text-[13.5px] mb-1">Last verified by {{ $teacher->verifiedBy?->name ?? 'a former Admin' }}, {{ $teacher->verified_at->format('M j, Y g:i A') }}
+                    ({{ $teacher->verification_evidence['basis'] ?? '' }}): {{ $teacher->verification_evidence['note'] ?? '' }}</p>
+                <p class="text-slate-brand text-[12.5px] mb-3">Attested as "{{ $teacher->verification_evidence['full_name'] ?? '' }}".</p>
+            @endif
+
+            @if ($teacher->chair_confirmed_at)
+                <p class="text-[13.5px] mb-3">Chair confirmation: {{ $teacher->chairConfirmedBy?->name }}, {{ $teacher->chair_confirmed_at->format('M j, Y') }} &mdash; {{ $teacher->chair_confirmation_note }}</p>
+            @else
+                <p class="text-slate-brand text-[13.5px] mb-3">No Chair confirmation yet. Plantilla-based verification needs one.</p>
+            @endif
+
+            @foreach ($openCases as $case)
+                <p class="text-[13.5px] mb-2"><a class="text-electric font-semibold hover:underline" href="{{ route('admin.identity-cases.show', $case) }}">Open identity case #{{ $case->id }}</a> &mdash; decide it before verifying.</p>
+            @endforeach
+
+            <p class="text-slate-brand text-[12.5px] mb-3">Sources: {{ $teacher->observations->pluck('source_reference')->filter()->unique()->implode('; ') ?: 'none recorded' }}</p>
+
+            @if ($teacher->verification_status !== \App\Enums\TeacherVerification::Verified)
+                <form method="POST" action="{{ route('admin.teachers.verify', $teacher) }}" class="flex flex-col gap-3">
+                    @csrf
+                    <select name="basis" class="field-input" required>
+                        <option value="plantilla">Reviewed plantilla with the Chair's confirmation</option>
+                        <option value="directory">Official teacher directory entry</option>
+                        <option value="other">Other source (describe below)</option>
+                    </select>
+                    <textarea name="note" rows="2" class="field-input" placeholder="What you checked" required></textarea>
+                    <x-input-error :messages="$errors->get('basis')" class="field-error" />
+                    <div><button type="submit" class="btn-primary">Verify name and department</button></div>
+                </form>
+            @endif
+
+            <p class="mt-4 text-[13.5px]">Duplicate record? <a class="text-electric font-semibold hover:underline" href="{{ route('admin.teachers.merge.preview', $teacher) }}">Merge it into another teacher</a></p>
+        </div>
+    @endif
 </x-app-layout>

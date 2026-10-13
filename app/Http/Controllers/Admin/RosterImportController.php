@@ -9,9 +9,11 @@ use App\Http\Requests\Admin\UpdateRosterRowRequest;
 use App\Models\RosterExtractionRow;
 use App\Models\RosterImport;
 use App\Models\SystemConstant;
+use App\Models\Teacher;
 use App\Services\Plantilla\ExtractionFailedException;
 use App\Services\Roster\RosterExtractionService;
 use App\Services\Roster\RosterReviewService;
+use App\Services\Teachers\TeacherIdentityService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 
@@ -29,10 +31,13 @@ class RosterImportController extends Controller
         return view('admin.roster.upload');
     }
 
-    public function store(StoreRosterImportRequest $request): RedirectResponse
+    public function store(StoreRosterImportRequest $request, TeacherIdentityService $identities): RedirectResponse
     {
         $schoolYear = SystemConstant::get('current_school_year');
         $path = $request->file('pdf')->store('rosters', 'local');
+
+        // Only the newest import is reviewed; questions about older ones lapse.
+        $identities->supersedeSources(RosterExtractionRow::pluck('id')->flatMap(fn ($id) => TeacherIdentityService::rosterKeys($id)));
 
         $import = RosterImport::create([
             'school_year' => $schoolYear,
@@ -72,12 +77,24 @@ class RosterImportController extends Controller
         ]);
     }
 
-    public function updateRow(UpdateRosterRowRequest $request, RosterExtractionRow $row): RedirectResponse
+    public function updateRow(UpdateRosterRowRequest $request, RosterExtractionRow $row, TeacherIdentityService $identities): RedirectResponse
     {
+        $previous = $row->row_json;
+
         $row->update([
-            'row_json' => $request->rowData(),
+            // Names as first read from the PDF stay with the row as evidence.
+            'row_json' => $request->rowData() + array_filter([
+                'extracted_moderator_name' => $row->row_json['extracted_moderator_name'] ?? $row->row_json['moderator_name'] ?? null,
+                'extracted_teacher_partner_name' => $row->row_json['extracted_teacher_partner_name'] ?? $row->row_json['teacher_partner_name'] ?? null,
+            ]),
             'row_status' => ExtractionRowStatus::Extracted,
         ]);
+
+        // A changed name answers or replaces any identity question about the old one.
+        if (Teacher::normalize($previous['moderator_name'] ?? '') !== Teacher::normalize($row->row_json['moderator_name'] ?? '')
+            || Teacher::normalize($previous['teacher_partner_name'] ?? '') !== Teacher::normalize($row->row_json['teacher_partner_name'] ?? '')) {
+            $identities->supersedeSources(TeacherIdentityService::rosterKeys($row->id));
+        }
 
         return back()->with('status', 'Row updated.');
     }
@@ -89,6 +106,11 @@ class RosterImportController extends Controller
 
         if ($result['errors']) {
             return back()->with('warning', implode(' ', $result['errors']));
+        }
+
+        if ($result['review']) {
+            return back()->with('warning', 'Nothing was imported yet: ' . count($result['review'])
+                . ' name(s) need an identity decision in the Teacher Directory. ' . implode(' ', $result['review']));
         }
 
         return redirect()->route('admin.sections.index')
