@@ -50,6 +50,18 @@
                 <p class="text-xs text-slate-brand mt-3">Uses the Excel workbook as a starting reference, with adjustments for current teachers and scheduling rules. An existing valid schedule may be reused when needed.</p>
             @endif
 
+            @if (! empty($readiness['warnings']))
+                <details class="mt-4 border-t border-line pt-4 text-sm">
+                    <summary class="cursor-pointer text-slate-brand">{{ count($readiness['warnings']) }} teacher identity note(s) &mdash; these do not block generation</summary>
+                    <ul class="space-y-1 mt-2 max-h-56 overflow-y-auto">
+                        @foreach ($readiness['warnings'] as $warning)
+                            <li class="text-slate-brand">{{ $warning['message'] }}</li>
+                        @endforeach
+                    </ul>
+                    <a href="{{ route('admin.teacher-readiness.index') }}" class="text-electric font-semibold hover:underline">Teacher identity readiness</a>
+                </details>
+            @endif
+
             @if (! $readiness['ready'])
                 <div class="mt-4 border-t border-line pt-4 max-h-72 overflow-y-auto">
                     <ul class="space-y-2 text-sm">

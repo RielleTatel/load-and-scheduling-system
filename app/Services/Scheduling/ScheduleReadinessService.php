@@ -9,12 +9,21 @@ use App\Models\PlantillaSubmission;
 use App\Models\Section;
 use App\Models\TeacherOtherAssignment;
 use App\Models\TeacherSectionAssignment;
+use App\Services\Teachers\TeacherIdentityReadinessService;
 
 final class ScheduleReadinessService
 {
     public const SUBJECT_CODES = ['ENG', 'MATH', 'SCI', 'CLE', 'FIL', 'SOC', 'TLE', 'MAPEH'];
 
-    /** @return array{ready:bool, school_year:string, blockers:list<array<string, mixed>>} */
+    public function __construct(private TeacherIdentityReadinessService $identities) {}
+
+    /**
+     * Identity questions join the blockers only when a teacher may be two
+     * people or contradicts a verification; pending verification is a
+     * warning and never stops generation.
+     *
+     * @return array{ready:bool, school_year:string, blockers:list<array<string, mixed>>, warnings:list<array<string, mixed>>}
+     */
     public function check(string $schoolYear): array
     {
         $blockers = [];
@@ -114,10 +123,26 @@ final class ScheduleReadinessService
             }
         }
 
+        $identity = $this->identities->forSchoolYear($schoolYear);
+        $warnings = [];
+
+        foreach ($identity['teachers'] as $row) {
+            foreach ($row['reasons'] as $reason) {
+                $context = ['teacher_id' => $row['teacher']->id] + array_intersect_key($reason, ['case_id' => true]);
+
+                if ($reason['level'] === TeacherIdentityReadinessService::BLOCKING) {
+                    $blockers[] = $this->blocker('teacher_identity_conflict', $reason['message'], $context);
+                } else {
+                    $warnings[] = $this->blocker($reason['code'], $reason['message'], $context);
+                }
+            }
+        }
+
         return [
             'ready' => $blockers === [],
             'school_year' => $schoolYear,
             'blockers' => $blockers,
+            'warnings' => $warnings,
         ];
     }
 
