@@ -224,7 +224,7 @@ class TeacherReconciliationService
     public function recordDirectory(string $reference, string $schoolYear, string $completeness, ?Department $scope, array $names, User $admin): array
     {
         return DB::transaction(function () use ($reference, $schoolYear, $completeness, $scope, $names, $admin) {
-            $sourceId = hash('crc32b', $reference . '|' . $schoolYear . '|' . microtime());
+            $sourceId = hash('crc32b', $reference.'|'.$schoolYear.'|'.microtime());
             $counts = ['linked' => 0, 'review' => 0, 'unmatched' => 0, 'absences' => 0];
             $matched = [];
 

@@ -10,7 +10,9 @@ use App\Services\Teachers\IdentityOutcome;
 use App\Services\Teachers\NameMatch;
 use App\Services\Teachers\NameSimilarity;
 use App\Services\Teachers\TeacherIdentityService;
+use Database\Seeders\DepartmentSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class TeacherIdentityServiceTest extends TestCase
@@ -20,7 +22,7 @@ class TeacherIdentityServiceTest extends TestCase
     private function dept(string $code = 'FIL'): Department
     {
         if (! Department::exists()) {
-            $this->seed(\Database\Seeders\DepartmentSeeder::class);
+            $this->seed(DepartmentSeeder::class);
         }
 
         return Department::where('code', $code)->firstOrFail();
@@ -104,7 +106,7 @@ class TeacherIdentityServiceTest extends TestCase
      * found during an end-to-end import. They used to be joined automatically;
      * now each is a suggestion an Admin confirms once.
      */
-    #[\PHPUnit\Framework\Attributes\DataProvider('samePersonWrittenTwoWays')]
+    #[DataProvider('samePersonWrittenTwoWays')]
     public function test_registrar_spelling_variants_are_suggested_for_review(string $registrar, string $sheet): void
     {
         $dept = $this->dept();

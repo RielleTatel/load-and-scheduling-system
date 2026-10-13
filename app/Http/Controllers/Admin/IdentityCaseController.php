@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\IdentityCaseReason;
 use App\Enums\IdentityDecision;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ResolveIdentityCaseRequest;
@@ -68,15 +69,15 @@ class IdentityCaseController extends Controller
     private function decisionsFor(TeacherIdentityCase $case): array
     {
         return match ($case->reason) {
-            \App\Enums\IdentityCaseReason::PossibleMatch, \App\Enums\IdentityCaseReason::AmbiguousMatch => $case->subject_teacher_id
+            IdentityCaseReason::PossibleMatch, IdentityCaseReason::AmbiguousMatch => $case->subject_teacher_id
                 ? ['distinct' => 'Different people — keep both records']
                 : ['same' => 'Same person as the chosen teacher', 'distinct' => 'A different person — create a new record'],
-            \App\Enums\IdentityCaseReason::DepartmentConflict => [
+            IdentityCaseReason::DepartmentConflict => [
                 'keep_department' => 'Same person — their current department stands',
                 'use_observed_department' => 'Same person — move them to the department this source names',
                 'distinct' => 'A different person — create a new record',
             ],
-            \App\Enums\IdentityCaseReason::DirectoryAbsence => ['absence_explained' => 'Investigated — record the outcome'],
+            IdentityCaseReason::DirectoryAbsence => ['absence_explained' => 'Investigated — record the outcome'],
         };
     }
 }

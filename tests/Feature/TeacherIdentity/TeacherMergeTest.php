@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\TeacherIdentity;
 
+use App\Enums\IdentityCaseReason;
 use App\Enums\IdentityCaseStatus;
 use App\Enums\IdentityDecision;
 use App\Models\ClassModeratorAssignment;
@@ -29,6 +30,7 @@ use Database\Seeders\SectionSeeder;
 use Database\Seeders\SystemConstantSeeder;
 use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
 use Tests\TestCase;
 
 /**
@@ -58,7 +60,7 @@ class TeacherMergeTest extends TestCase
         return User::where('email', 'admin@jhs.test')->firstOrFail();
     }
 
-    private function sections(): \Illuminate\Support\Collection
+    private function sections(): Collection
     {
         return Section::where('school_year', '2026-2027')->orderBy('id')->get();
     }
@@ -224,7 +226,7 @@ class TeacherMergeTest extends TestCase
         $identities = app(TeacherIdentityService::class);
         $case = $identities->openCase(
             new IdentityObservation(IdentityObservation::MANUAL, "manual:teacher:{$this->duplicate->id}", $this->duplicate->full_name, null),
-            IdentityOutcome::review(\App\Enums\IdentityCaseReason::PossibleMatch, [$this->keep->id]),
+            IdentityOutcome::review(IdentityCaseReason::PossibleMatch, [$this->keep->id]),
             $this->duplicate,
         );
 

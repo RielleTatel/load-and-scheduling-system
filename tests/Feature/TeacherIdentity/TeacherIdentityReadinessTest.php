@@ -20,6 +20,7 @@ use App\Services\Teachers\IdentityObservation;
 use App\Services\Teachers\IdentityOutcome;
 use App\Services\Teachers\TeacherIdentityReadinessService;
 use App\Services\Teachers\TeacherIdentityService;
+use Database\Seeders\DepartmentSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
@@ -78,7 +79,7 @@ class TeacherIdentityReadinessTest extends TestCase
 
     public function test_the_report_covers_participants_and_explains_each_reason(): void
     {
-        $this->seed(\Database\Seeders\DepartmentSeeder::class);
+        $this->seed(DepartmentSeeder::class);
         $fil = Department::where('code', 'FIL')->first();
         $section = Section::create(['school_year' => self::YEAR, 'grade_level' => GradeLevel::G7, 'name' => 'Pilot']);
         $old = Section::create(['school_year' => '2025-2026', 'grade_level' => GradeLevel::G7, 'name' => 'Old']);

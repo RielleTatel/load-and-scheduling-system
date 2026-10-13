@@ -5,10 +5,12 @@ namespace App\Http\Controllers\DepartmentChair;
 use App\Enums\ExtractionRowStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Chair\StorePlantillaUploadRequest;
+use App\Models\PlantillaExtractionRow;
 use App\Models\PlantillaSubmission;
 use App\Models\PlantillaUpload;
 use App\Services\Plantilla\ExtractionFailedException;
 use App\Services\Plantilla\PdfExtractionService;
+use App\Services\Teachers\TeacherIdentityService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 
@@ -23,13 +25,17 @@ class PlantillaUploadController extends Controller
         return view('chair.plantilla.upload', ['submission' => $submission]);
     }
 
-    public function store(StorePlantillaUploadRequest $request): RedirectResponse
+    public function store(StorePlantillaUploadRequest $request, TeacherIdentityService $identities): RedirectResponse
     {
         $submission = PlantillaSubmission::currentFor(auth()->user()->department_id);
         $this->authorize('update', $submission);
 
         $department = auth()->user()->department;
         $path = $request->file('pdf')->store("plantillas/{$department->code}", 'local');
+
+        // Only the newest upload is reviewed; questions about older ones lapse.
+        $identities->supersedeSources(PlantillaExtractionRow::whereIn('plantilla_upload_id', PlantillaUpload::where('plantilla_submission_id', $submission->id)->pluck('id'))
+            ->pluck('id')->map(fn ($id) => "plantilla_row:{$id}"));
 
         $upload = PlantillaUpload::create([
             'plantilla_submission_id' => $submission->id,

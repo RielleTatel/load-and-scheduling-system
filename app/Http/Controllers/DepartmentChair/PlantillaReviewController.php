@@ -8,6 +8,7 @@ use App\Http\Requests\Chair\UpdateExtractionRowRequest;
 use App\Models\PlantillaExtractionRow;
 use App\Models\PlantillaSubmission;
 use App\Models\PlantillaUpload;
+use App\Models\Teacher;
 use App\Models\TeacherIdentityCase;
 use App\Services\Plantilla\PlantillaReviewService;
 use App\Services\Teachers\TeacherIdentityService;
@@ -84,7 +85,7 @@ class PlantillaReviewController extends Controller
         return back()->with('status', 'Row added.');
     }
 
-    public function updateRow(UpdateExtractionRowRequest $request, PlantillaExtractionRow $row): RedirectResponse
+    public function updateRow(UpdateExtractionRowRequest $request, PlantillaExtractionRow $row, TeacherIdentityService $identities): RedirectResponse
     {
         $this->authorizeRow($row);
 
@@ -98,12 +99,18 @@ class PlantillaReviewController extends Controller
             'row_status' => ExtractionRowStatus::Extracted,
         ]);
 
+        // A changed name answers or replaces any identity question about the old one.
+        if (Teacher::normalize($previous['teacher_name'] ?? '') !== Teacher::normalize($row->row_json['teacher_name'] ?? '')) {
+            $identities->supersedeSources(["plantilla_row:{$row->id}"]);
+        }
+
         return back()->with('status', 'Row updated.');
     }
 
-    public function destroyRow(PlantillaExtractionRow $row): RedirectResponse
+    public function destroyRow(PlantillaExtractionRow $row, TeacherIdentityService $identities): RedirectResponse
     {
         $this->authorizeRow($row);
+        $identities->supersedeSources(["plantilla_row:{$row->id}"]);
         $row->delete();
 
         return back()->with('status', 'Row removed.');

@@ -40,6 +40,6 @@ class DirectorySourceController extends Controller
 
         return redirect()->route('admin.teachers.index')->with('status',
             "Directory recorded: {$counts['linked']} linked, {$counts['review']} need a decision, "
-            . "{$counts['unmatched']} not on file, {$counts['absences']} absence(s) to investigate.");
+            ."{$counts['unmatched']} not on file, {$counts['absences']} absence(s) to investigate.");
     }
 }

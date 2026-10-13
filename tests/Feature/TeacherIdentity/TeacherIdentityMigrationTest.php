@@ -4,6 +4,8 @@ namespace Tests\Feature\TeacherIdentity;
 
 use App\Enums\TeacherVerification;
 use App\Models\Teacher;
+use Database\Seeders\DepartmentSeeder;
+use Database\Seeders\SectionSeeder;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -20,8 +22,8 @@ class TeacherIdentityMigrationTest extends TestCase
 
     public function test_legacy_teachers_survive_as_pending_without_fabricated_evidence(): void
     {
-        $this->seed(\Database\Seeders\DepartmentSeeder::class);
-        $this->seed(\Database\Seeders\SectionSeeder::class);
+        $this->seed(DepartmentSeeder::class);
+        $this->seed(SectionSeeder::class);
         $this->artisan('migrate:rollback', ['--path' => 'database/migrations/2026_10_13_000001_add_teacher_identity_reconciliation.php'])->assertSuccessful();
 
         $fil = DB::table('departments')->where('code', 'FIL')->value('id');

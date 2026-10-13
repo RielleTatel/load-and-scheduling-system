@@ -91,7 +91,7 @@ class TeacherIdentityReconciliationTest extends TestCase
 
     private function suffix(int $n): string
     {
-        return chr(65 + intdiv($n - 1, 26)) . chr(65 + (($n - 1) % 26));
+        return chr(65 + intdiv($n - 1, 26)).chr(65 + (($n - 1) % 26));
     }
 
     /** A complete 36-section roster for another year, naming $moderator on the first section. */
@@ -115,8 +115,8 @@ class TeacherIdentityReconciliationTest extends TestCase
                         'name' => "Section{$n}",
                         'room' => (string) (100 + $n),
                         'is_magis' => false,
-                        'moderator_name' => $n === 1 ? $moderator : 'Moderator ' . $this->suffix($n),
-                        'teacher_partner_name' => 'Partner ' . $this->suffix($n),
+                        'moderator_name' => $n === 1 ? $moderator : 'Moderator '.$this->suffix($n),
+                        'teacher_partner_name' => 'Partner '.$this->suffix($n),
                         'flagged' => false,
                         'flags' => [],
                     ],

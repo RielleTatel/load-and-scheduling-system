@@ -300,4 +300,45 @@ class TeacherVerificationTest extends TestCase
 
         $this->assertSame(0, TeacherIdentityCase::count());
     }
+
+    public function test_the_identity_screens_render_for_their_roles(): void
+    {
+        $chair = $this->chair();
+        $teacher = $this->importTeacher($chair, 'Leah Angelic C. Bilbar');
+        Teacher::create(['full_name' => 'Leah Angelic Bilbare', 'source' => 'registrar']);
+        $this->actingAs($chair)->post(route('chair.teachers.store'), ['full_name' => 'Leah Angelica Bilbar', 'employment_status' => 'permanent']);
+
+        $this->actingAs($this->admin())->get(route('admin.identity-cases.index'))->assertOk()->assertSee('Leah Angelica Bilbar');
+        $this->actingAs($this->admin())->get(route('admin.teachers.edit', $teacher))->assertOk()->assertSee('Identity verification');
+        $this->actingAs($this->admin())->get(route('admin.directory-sources.create'))->assertOk();
+        $this->actingAs($this->admin())->get(route('admin.teachers.merge.preview', $teacher))->assertOk();
+        $this->actingAs($chair)->get(route('chair.teachers.index'))->assertOk()->assertSee('Pending verification');
+
+        $this->actingAs($chair)->get(route('admin.identity-cases.index'))->assertForbidden();
+    }
+
+    public function test_removing_or_replacing_a_staged_row_closes_its_open_case(): void
+    {
+        Teacher::create(['full_name' => 'Abigail Joyce L. Vendiola', 'source' => 'registrar']);
+        $chair = $this->chair();
+        $upload = PlantillaUpload::create([
+            'plantilla_submission_id' => PlantillaSubmission::currentFor($chair->department_id)->id,
+            'file_path' => 'x', 'original_filename' => 'x.pdf', 'extraction_status' => 'extracted',
+        ]);
+        $row = $upload->rows()->create(['row_json' => ['teacher_name' => 'Abigail Joyce L. Vendola', 'flagged' => false], 'row_status' => ExtractionRowStatus::Extracted]);
+        $this->actingAs($chair)->post(route('chair.plantilla.confirm'));
+        $this->assertSame(1, TeacherIdentityCase::open()->count());
+
+        // Correcting the name to the registrar's spelling makes the question moot.
+        $this->actingAs($chair)->patch(route('chair.plantilla.rows.update', $row), ['teacher_name' => 'Abigail Joyce L. Vendiola', 'employment_status' => 'Permanent']);
+        $this->assertSame(0, TeacherIdentityCase::open()->count());
+        $this->assertSame(\App\Enums\IdentityDecision::Superseded, TeacherIdentityCase::sole()->decision);
+
+        $this->actingAs($chair)->patch(route('chair.plantilla.rows.update', $row), ['teacher_name' => 'Abigail Joyce L. Vendola', 'employment_status' => 'Permanent']);
+        $this->actingAs($chair)->post(route('chair.plantilla.confirm'));
+        $this->assertSame(1, TeacherIdentityCase::open()->count());
+
+        $this->actingAs($chair)->delete(route('chair.plantilla.rows.destroy', $row));
+        $this->assertSame(0, TeacherIdentityCase::open()->count(), 'a removed row leaves no case blocking anyone');
+    }
 }

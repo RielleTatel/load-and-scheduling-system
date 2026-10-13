@@ -222,6 +222,32 @@ class TeacherIdentityService
         return $case;
     }
 
+    /**
+     * Close the open cases raised by source rows that were edited, removed or
+     * replaced by a newer upload, so they stop holding anyone up.
+     *
+     * @param  iterable<string>  $sourceKeys
+     */
+    public function supersedeSources(iterable $sourceKeys): void
+    {
+        $keys = collect($sourceKeys)->values();
+        if ($keys->isEmpty()) {
+            return;
+        }
+
+        TeacherIdentityCase::open()->whereIn('source_key', $keys)->get()->each(fn ($case) => $this->supersede($case));
+    }
+
+    /**
+     * Source keys for every person a roster row names.
+     *
+     * @return list<string>
+     */
+    public static function rosterKeys(int $rowId): array
+    {
+        return ["roster_row:{$rowId}:moderator", "roster_row:{$rowId}:teacher_partner"];
+    }
+
     /** Close a case whose question no longer applies, and release its teachers. */
     public function supersede(TeacherIdentityCase $case): void
     {
