@@ -17,7 +17,7 @@ class DashboardController extends Controller
         $department = auth()->user()->department;
         $schoolYear = SystemConstant::get('current_school_year');
 
-        $teachers = Teacher::where('department_id', $department->id)
+        $teachers = Teacher::active()->where('department_id', $department->id)
             ->orderBy('full_name')->get()
             ->map(fn ($teacher) => [
                 'model' => $teacher,

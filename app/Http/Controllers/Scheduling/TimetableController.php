@@ -23,6 +23,7 @@ use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
 
 class TimetableController extends Controller
@@ -143,7 +144,7 @@ class TimetableController extends Controller
                     ->orderBy('day')->orderBy('period')->get()
                 : collect(),
             'availabilityTeachers' => $isAdmin
-                ? Teacher::query()->with('department:id,name,code')->orderBy('full_name')->get(['id', 'full_name', 'department_id'])
+                ? Teacher::query()->active()->with('department:id,name,code')->orderBy('full_name')->get(['id', 'full_name', 'department_id'])
                 : collect(),
             'periodTimes' => collect($data['scheduleRows'])->where('type', 'subject')->pluck('time', 'period')->all(),
             'remediation' => [1 => 'Science', 2 => 'English', 3 => 'Mathematics', 4 => 'CLE & Filipino', 5 => 'Social Studies & TLE'],
@@ -225,7 +226,7 @@ class TimetableController extends Controller
     public function addAvailability(Request $request, TimetableVersion $timetable, TimetableValidationService $validation, AuditLogService $audit): RedirectResponse
     {
         $input = $request->validate([
-            'teacher_id' => ['required', 'integer', 'exists:teachers,id'],
+            'teacher_id' => ['required', 'integer', Rule::exists('teachers', 'id')->whereNull('merged_into_teacher_id')],
             'day' => ['required', 'integer', 'between:1,5'],
             'period' => ['required', 'integer', 'between:1,'.$timetable->kind->periodsPerDay()],
             'reason' => ['nullable', 'string', 'max:255'],
