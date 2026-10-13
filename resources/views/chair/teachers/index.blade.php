@@ -33,6 +33,21 @@
                                 @if (! empty($l['flags']))
                                     <div class="flex flex-wrap gap-1 mt-1"><x-load-flags :flags="$l['flags']" /></div>
                                 @endif
+                                <div class="text-[12.5px] mt-1 {{ $t->verification_status === \App\Enums\TeacherVerification::Verified ? 'text-jade' : 'text-[#8a6200]' }}">
+                                    {{ $t->verification_status->label() }}
+                                    @if ($entry['cases']->isNotEmpty()) &middot; identity question open with the Admin @endif
+                                    @if ($t->chair_confirmed_at) &middot; you confirmed {{ $t->chair_confirmed_at->format('M j') }} @endif
+                                </div>
+                                @if ($t->verification_status !== \App\Enums\TeacherVerification::Verified && ! $t->chair_confirmed_at)
+                                    <details class="mt-1 text-[12.5px]">
+                                        <summary class="cursor-pointer text-electric font-semibold">Confirm name and department</summary>
+                                        <form method="POST" action="{{ route('chair.teachers.confirm-identity', $t) }}" class="flex gap-2 mt-2">
+                                            @csrf
+                                            <input name="note" class="field-input" placeholder="e.g. Full-time Filipino teacher; name as on appointment" required>
+                                            <button class="btn-secondary">Confirm</button>
+                                        </form>
+                                    </details>
+                                @endif
                             </td>
                             <td class="px-4 py-3.5 text-[13.5px] text-slate-brand">{{ $t->employment_status->label() }}</td>
                             <td class="px-4 py-3.5 text-right font-data">{{ $l['section_count'] }}</td>

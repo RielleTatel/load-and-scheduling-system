@@ -75,7 +75,11 @@ class RosterImportController extends Controller
     public function updateRow(UpdateRosterRowRequest $request, RosterExtractionRow $row): RedirectResponse
     {
         $row->update([
-            'row_json' => $request->rowData(),
+            // Names as first read from the PDF stay with the row as evidence.
+            'row_json' => $request->rowData() + array_filter([
+                'extracted_moderator_name' => $row->row_json['extracted_moderator_name'] ?? $row->row_json['moderator_name'] ?? null,
+                'extracted_teacher_partner_name' => $row->row_json['extracted_teacher_partner_name'] ?? $row->row_json['teacher_partner_name'] ?? null,
+            ]),
             'row_status' => ExtractionRowStatus::Extracted,
         ]);
 

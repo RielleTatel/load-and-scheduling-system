@@ -1,6 +1,9 @@
 <x-app-layout>
     <x-page-header eyebrow="Registrar Reference Data" title="Teacher Directory">
         <x-slot:actions>
+            <a href="{{ route('admin.identity-cases.index') }}" class="btn-secondary">Identity cases @if ($openCases) ({{ $openCases }}) @endif</a>
+            <a href="{{ route('admin.directory-sources.create') }}" class="btn-secondary">Record a directory</a>
+            <a href="{{ route('admin.teacher-readiness.index') }}" class="btn-secondary">Readiness</a>
             <a href="{{ route('admin.teachers.create') }}" class="btn-primary">Add teacher</a>
         </x-slot:actions>
     </x-page-header>
@@ -9,11 +12,11 @@
 
     <div class="flex flex-wrap gap-x-10 gap-y-4 mb-5">
         <div>
-            <span class="stat-mini-number">{{ $teachers->count() }}</span>
+            <span class="stat-mini-number">{{ $all->count() }}</span>
             <span class="block text-slate-brand text-[12.5px]">In the directory</span>
         </div>
         <div>
-            <span class="stat-mini-number">{{ $teachers->whereNotNull('department_id')->count() }}</span>
+            <span class="stat-mini-number">{{ $all->whereNotNull('department_id')->count() }}</span>
             <span class="block text-slate-brand text-[12.5px]">Assigned to a department</span>
         </div>
         <div>
@@ -28,12 +31,28 @@
         corrected spelling updates the teacher instead of creating a second one.
     </p>
 
+    @if ($openCases)
+        <div class="card p-5 mb-5 border-l-4 border-amber-brand">
+            <p class="font-bold text-[14px] mb-1">{{ $openCases }} identity {{ \Illuminate\Support\Str::plural('case', $openCases) }} waiting for a decision</p>
+            <p class="text-slate-brand text-[13.5px]">Imports that raised them stay staged. <a class="text-electric font-semibold hover:underline" href="{{ route('admin.identity-cases.index') }}">Review them</a>.</p>
+        </div>
+    @endif
+
+    <div class="flex flex-wrap gap-2 mb-4 text-[13px]">
+        <a href="{{ route('admin.teachers.index') }}" class="{{ $filter ? 'btn-ghost' : 'btn-secondary' }}">All</a>
+        @foreach (\App\Enums\TeacherVerification::cases() as $state)
+            <a href="{{ route('admin.teachers.index', ['verification' => $state->value]) }}" class="{{ $filter === $state ? 'btn-secondary' : 'btn-ghost' }}">
+                {{ $state->label() }} ({{ $all->where('verification_status', $state)->count() }})
+            </a>
+        @endforeach
+    </div>
+
     @if ($unclaimed->isNotEmpty())
         <div class="card p-5 mb-5 border-l-4 border-amber-brand">
             <p class="font-bold text-[14px] mb-1">{{ $unclaimed->count() }} named by the registrar with no plantilla yet</p>
             <p class="text-slate-brand text-[13.5px]">
                 These people moderate or partner a section but their department's sheet has not been imported.
-                They will be picked up automatically when it is &mdash; no need to add them by hand.
+                An exact name on that sheet links to them; a different spelling waits for your decision.
             </p>
         </div>
     @endif
@@ -46,6 +65,7 @@
                         <th class="text-left font-bold text-[11.5px] uppercase tracking-[0.06em] text-slate-brand px-4 py-3">Teacher</th>
                         <th class="text-left font-bold text-[11.5px] uppercase tracking-[0.06em] text-slate-brand px-4 py-3">Department</th>
                         <th class="text-left font-bold text-[11.5px] uppercase tracking-[0.06em] text-slate-brand px-4 py-3">Status</th>
+                        <th class="text-left font-bold text-[11.5px] uppercase tracking-[0.06em] text-slate-brand px-4 py-3">Identity</th>
                         <th class="text-right font-bold text-[11.5px] uppercase tracking-[0.06em] text-slate-brand px-4 py-3">Sections</th>
                         <th class="text-right font-bold text-[11.5px] uppercase tracking-[0.06em] text-slate-brand px-4 py-3">Moderates</th>
                         <th class="px-4 py-3"></th>
@@ -68,6 +88,9 @@
                                 @else
                                     <span class="text-[#8a6200] text-[13px]">Not set</span>
                                 @endif
+                            </td>
+                            <td class="px-4 py-3.5 text-[13px]">
+                                <span class="{{ $teacher->verification_status === \App\Enums\TeacherVerification::Verified ? 'text-jade' : 'text-[#8a6200]' }}">{{ $teacher->verification_status->label() }}</span>
                             </td>
                             <td class="px-4 py-3.5 text-right font-data">{{ $teacher->section_assignments_count }}</td>
                             <td class="px-4 py-3.5 text-right font-data">{{ $teacher->moderator_assignments_count }}</td>

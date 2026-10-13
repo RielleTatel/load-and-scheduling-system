@@ -8,7 +8,9 @@ use App\Http\Requests\Chair\UpdateExtractionRowRequest;
 use App\Models\PlantillaExtractionRow;
 use App\Models\PlantillaSubmission;
 use App\Models\PlantillaUpload;
+use App\Models\TeacherIdentityCase;
 use App\Services\Plantilla\PlantillaReviewService;
+use App\Services\Teachers\TeacherIdentityService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 
@@ -45,16 +47,20 @@ class PlantillaReviewController extends Controller
         return redirect()->route('chair.teachers.index')->with('status', $message);
     }
 
-    public function show(): View
+    public function show(TeacherIdentityService $identities): View
     {
         $submission = PlantillaSubmission::currentFor(auth()->user()->department_id);
         $upload = $this->latestUpload($submission);
+        $rows = $upload?->rows()->orderBy('id')->get() ?? collect();
 
         return view('chair.plantilla.review', [
             'submission' => $submission,
             'upload' => $upload,
-            'rows' => $upload?->rows()->orderBy('id')->get() ?? collect(),
+            'rows' => $rows,
             'blankRow' => $this->blankRow(),
+            'identityCases' => TeacherIdentityCase::open()
+                ->whereIn('source_key', $rows->map(fn ($row) => "plantilla_row:{$row->id}"))->get(),
+            'describe' => fn (TeacherIdentityCase $case) => $identities->describe($case),
         ]);
     }
 
@@ -82,8 +88,13 @@ class PlantillaReviewController extends Controller
     {
         $this->authorizeRow($row);
 
+        // The name as first read from the sheet stays with the row as evidence;
+        // the edited name is what gets matched.
+        $previous = $row->row_json;
+        $extracted = $previous['extracted_teacher_name'] ?? ($row->upload->file_path === 'manual' ? null : ($previous['teacher_name'] ?? null));
+
         $row->update([
-            'row_json' => array_merge($this->blankRow(), $request->rowData()),
+            'row_json' => array_merge($this->blankRow(), $request->rowData(), array_filter(['extracted_teacher_name' => $extracted])),
             'row_status' => ExtractionRowStatus::Extracted,
         ]);
 

@@ -13,6 +13,26 @@
 
     <x-flash />
 
+    @if ($identityCases->isNotEmpty())
+        <div class="card p-5 mb-5 border-l-4 border-amber-brand">
+            <p class="font-bold text-[14px] mb-1">{{ $identityCases->count() }} teacher {{ \Illuminate\Support\Str::plural('name', $identityCases->count()) }} needs an Admin identity decision</p>
+            <p class="text-slate-brand text-[13.5px] mb-3">Nothing on this sheet imports until each is decided, so no load lands on the wrong person. Tell the Admin what you know.</p>
+            @foreach ($identityCases as $case)
+                <div class="border-t border-line pt-3 mt-3">
+                    <p class="text-[13.5px] mb-2">{{ $describe($case) }}</p>
+                    @foreach ($case->chair_context ?? [] as $entry)
+                        <p class="text-slate-brand text-[12.5px]">{{ $entry['name'] }}: {{ $entry['note'] }}</p>
+                    @endforeach
+                    <form method="POST" action="{{ route('chair.identity-cases.context', $case) }}" class="flex gap-2 mt-2">
+                        @csrf
+                        <input name="note" class="field-input" placeholder="e.g. Same person; the sheet misspells her surname" required>
+                        <button class="btn-secondary">Send to Admin</button>
+                    </form>
+                </div>
+            @endforeach
+        </div>
+    @endif
+
     @php
         $statuses = \App\Enums\EmploymentStatus::cases();
         $fieldRow = fn ($row) => is_array($row->row_json) ? $row->row_json : [];
